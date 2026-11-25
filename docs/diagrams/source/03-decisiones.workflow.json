@@ -8,7 +8,8 @@
     "quality_profile": "showcase",
     "legend": {
       "mode": "hidden"
-    }
+    },
+    "feedback_links": false
   },
   "lanes": [
     {

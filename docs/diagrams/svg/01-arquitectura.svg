@@ -554,21 +554,21 @@ svg[data-node-ui][data-preset="editorial"] :is([data-graph-role="structural-fram
             <rect x="155" y="799" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
             <text x="177" y="808" class="t-muted" font-size="10" font-weight="500">Backend</text>
           </g>
-          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="Base de datos" data-legend-x="264" data-legend-baseline="808" data-legend-width="124">
+          <g data-legend-semantic-kind="database" data-legend-kind="database" data-legend-label="Fuentes de datos" data-legend-x="264" data-legend-baseline="808" data-legend-width="143">
             <rect x="264" y="799" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
-            <text x="286" y="808" class="t-muted" font-size="10" font-weight="500">Base de datos</text>
+            <text x="286" y="808" class="t-muted" font-size="10" font-weight="500">Fuentes de datos</text>
           </g>
-          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="Seguridad" data-legend-x="410" data-legend-baseline="808" data-legend-width="99">
-            <rect x="410" y="799" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
-            <text x="432" y="808" class="t-muted" font-size="10" font-weight="500">Seguridad</text>
+          <g data-legend-semantic-kind="security" data-legend-kind="security" data-legend-label="Seguridad" data-legend-x="429" data-legend-baseline="808" data-legend-width="99">
+            <rect x="429" y="799" width="16" height="10" rx="2.5" class="c-security" stroke-width="1"/>
+            <text x="451" y="808" class="t-muted" font-size="10" font-weight="500">Seguridad</text>
           </g>
-          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="Bus de mensajes" data-legend-x="531" data-legend-baseline="808" data-legend-width="136">
-            <rect x="531" y="799" width="16" height="10" rx="2.5" class="c-messagebus" stroke-width="1"/>
-            <text x="553" y="808" class="t-muted" font-size="10" font-weight="500">Bus de mensajes</text>
+          <g data-legend-semantic-kind="messagebus" data-legend-kind="messagebus" data-legend-label="Registros" data-legend-x="550" data-legend-baseline="808" data-legend-width="99">
+            <rect x="550" y="799" width="16" height="10" rx="2.5" class="c-messagebus" stroke-width="1"/>
+            <text x="572" y="808" class="t-muted" font-size="10" font-weight="500">Registros</text>
           </g>
-          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="Externo" data-legend-x="689" data-legend-baseline="808" data-legend-width="87">
-            <rect x="689" y="799" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
-            <text x="711" y="808" class="t-muted" font-size="10" font-weight="500">Externo</text>
+          <g data-legend-semantic-kind="external" data-legend-kind="external" data-legend-label="Externo" data-legend-x="671" data-legend-baseline="808" data-legend-width="87">
+            <rect x="671" y="799" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
+            <text x="693" y="808" class="t-muted" font-size="10" font-weight="500">Externo</text>
           </g>
         </g>
       <metadata id="archify-software-notices">NOTICE

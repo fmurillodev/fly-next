@@ -21,7 +21,7 @@ El pasajero usa un navegador, donde se ejecuta React (Vite y Tailwind). La consu
 
 ![Secuencia de evaluación de una consulta](svg/02-secuencia.svg)
 
-Orden real del código: la ruta valida la solicitud (tipo de contenido, tamaño, límite de ritmo y esquema); el caso de uso lee primero el viaje y comprueba su frescura; luego lee eventos y políticas en paralelo; el dominio reconcilia las fuentes, clasifica la disrupción, evalúa la conexión y aplica las políticas; solo si hay alerta o severidad crítica se leen y validan las alternativas; por último se decide la recomendación. La capa de presentación compone los mensajes y mapea el DTO por lista de permitidos, la ruta valida la respuesta con el contrato y recién entonces la devuelve.
+Orden real del código: la ruta valida la solicitud (tipo de contenido, tamaño, límite de solicitudes y esquema); el caso de uso lee primero el viaje y comprueba su frescura; luego lee eventos y políticas en paralelo; el dominio reconcilia las fuentes, clasifica la disrupción, evalúa la conexión y aplica las políticas; solo si hay alerta o severidad crítica se leen y validan las alternativas; por último se decide la recomendación. La capa de presentación compone los mensajes y mapea el DTO por lista de permitidos, la ruta valida la respuesta con el contrato y recién entonces la devuelve.
 
 ## 3. Flujo de decisiones
 

@@ -5,7 +5,8 @@
     "title": "Secuencia de evaluación de una consulta",
     "locale": "es",
     "output": "02-secuencia.html",
-    "quality_profile": "showcase"
+    "quality_profile": "showcase",
+    "feedback_links": false
   },
   "participants": [
     {

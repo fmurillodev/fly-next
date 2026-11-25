@@ -19,7 +19,7 @@ FlyNext es un demo. Esta guía es el guion de la presentación; no hay diapositi
 | 3–5 | Motor y evidencia | [Diagrama 2](diagrams/README.md#2-secuencia-de-evaluación) y [3](diagrams/README.md#3-flujo-de-decisiones); luego `/docs` | El motor es determinista: reconcilia fuentes, mide frescura, evalúa la conexión, aplica políticas y alternativas, y recomienda. Ante la duda, declara incertidumbre. |
 | 5–7 | Escenarios en vivo | La aplicación con ABC123, DEMO01 y DEMO02 (ver abajo) | Una conexión en riesgo no es una conexión perdida; un beneficio aplicable no es un cambio hecho; una alternativa no es una reserva. |
 | 7–9 | Límites de IA, riesgos y trade-offs | [Diagrama 4](diagrams/README.md#4-límites-de-ia-y-decisiones); tabla de clasificación y riesgos del README | Hoy no hay LLM. La IA interpretaría y explicaría; el motor conserva la autoridad; las acciones sensibles siguen en manos humanas. |
-| 9–10 | Validación y próximos pasos | [Evidencia técnica](TECHNICAL-EVIDENCE.md), secciones 5 y 6; próximos pasos del README | 340 tests, CI, humo público. Limitaciones declaradas. Siguiente: validar reglas con Operaciones y autenticar reservas. |
+| 9–10 | Validación y próximos pasos | [Evidencia técnica](TECHNICAL-EVIDENCE.md), secciones 5 y 6; próximos pasos del README | 340 tests, CI, pruebas de funcionamiento en producción. Limitaciones declaradas. Siguiente: validar reglas con Operaciones y autenticar reservas. |
 
 ## Escenarios (minuto 5–7)
 
@@ -53,6 +53,6 @@ Los diagramas y el README funcionan sin red. Capturas de respaldo en `docs/evide
 
 ## Preguntas probables
 
-- **¿Por qué no un LLM?** Las decisiones de negocio deben ser reproducibles y auditables; un modelo podría inventar políticas u horarios. Se propone para interpretar y explicar, no para decidir ([diagrama 4](diagrams/README.md#4-límites-de-ia-y-decisiones)).
-- **¿Qué falta para producción?** Sistemas reales, autenticación, validación de reglas con Operaciones, límite de ritmo por cliente, accesibilidad y pruebas de carga (README, sección 6).
+- **¿Por qué no un modelo de lenguaje?** Las decisiones de negocio deben ser reproducibles y auditables; un modelo podría inventar políticas u horarios. Se propone para interpretar y explicar, no para decidir ([diagrama 4](diagrams/README.md#4-límites-de-ia-y-decisiones)).
+- **¿Qué falta para producción?** Sistemas reales, autenticación, validación de reglas con Operaciones, límite de solicitudes por cliente, accesibilidad y pruebas de carga (README, sección 6).
 - **¿Cuánto tiempo tomó?** No hay una medición activa consistente; no se afirma el cumplimiento del límite de tres horas.

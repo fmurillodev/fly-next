@@ -5,7 +5,8 @@
     "title": "Límites de IA y decisiones",
     "locale": "es",
     "output": "04-limites-ia.html",
-    "quality_profile": "showcase"
+    "quality_profile": "showcase",
+    "feedback_links": false
   },
   "layout": {
     "mode": "auto"

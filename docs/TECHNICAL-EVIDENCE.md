@@ -26,11 +26,13 @@ El frontend React es una **capa complementaria**: muestra el resultado del backe
 | Mensajes al pasajero | Se generan con plantillas deterministas a partir de los hechos; el frontend no interpreta enums para armar mensajes. | `presentation/` | `present-assessment.test.ts` |
 | Frontend responsive | React 19, Vite y Tailwind v4. Estados de carga, error y vacío, etiqueta de modo demo. | `apps/web/` | 10 tests; capturas en `docs/evidence/screenshots/` |
 | Observabilidad | Logs Pino por categoría (`METRIC`, `DATA`, `BUSINESS`, `ERROR`, `ALERT`), sin datos personales. `LOG_LEVEL=silent` por defecto. | `apps/api/src/shared/observability.ts`, `docs/engineering/OBSERVABILITY.md` | tests de logs en `app.test.ts` |
-| Despliegue único | Un servicio Railway, un proceso Node.js: Fastify entrega la API, Swagger y los archivos estáticos de React. Sin base de datos. | `docs/engineering/ARCHITECTURE.md` | humo público (sección 5) |
+| Despliegue único | Un servicio Railway, un proceso Node.js: Fastify entrega la API, Swagger y los archivos estáticos de React. Sin base de datos. | `docs/engineering/ARCHITECTURE.md` | pruebas de funcionamiento en producción (sección 5) |
 
 ## 3. Cómo revisarlo o ejecutarlo
 
 Requisitos: Node **24.15.0** (archivo `.nvmrc`) y pnpm **12.16.1** (campo `packageManager`; la instalación falla si las versiones no coinciden). Por ejemplo: `nvm use` y `npm install -g pnpm@12.16.1`.
+
+**Desarrollo** (`pnpm dev` mantiene procesos activos —la API y Vite— hasta que los detengas con Ctrl+C; no usarlo para pruebas automáticas):
 
 ```bash
 git clone https://github.com/fmurillodev/fly-next.git
@@ -38,12 +40,17 @@ cd fly-next
 nvm use                          # Node 24.15.0
 pnpm install --frozen-lockfile   # dependencias exactas del lockfile
 pnpm dev                         # API en :3000 y Vite (imprime su puerto); /api se reenvía a la API
-pnpm test                        # 340 tests
-pnpm build                       # contratos, API y web
-pnpm start                       # API compilada en http://localhost:3000 (sirve también la web)
 ```
 
-Atajos del `package.json`: `pnpm dev:api`, `pnpm dev:web`, `pnpm check` (lint, typecheck, tests y build, igual que la CI). Variables opcionales leídas por la API (`apps/api/src/config.ts`): `HOST` (por defecto `0.0.0.0`), `PORT` (3000), `LOG_LEVEL` (`silent`) y `RATE_LIMIT_MAX` (60). No hay otras.
+**Pruebas, compilación y ejecución compilada** (comandos que terminan, salvo `pnpm start`, que queda sirviendo en http://localhost:3000, interfaz incluida):
+
+```bash
+pnpm test                        # 340 tests
+pnpm build                       # contratos, API y web
+pnpm start                       # API compilada, en primer plano hasta Ctrl+C
+```
+
+Atajos del `package.json`: `pnpm dev:api`, `pnpm dev:web`, `pnpm check` (lint, typecheck, tests y build, igual que la CI). Variables opcionales de la API (`apps/api/src/config.ts`): `HOST` (por defecto `0.0.0.0`), `PORT` (3000), `LOG_LEVEL` y `RATE_LIMIT_MAX` (60). No hay otras. `LOG_LEVEL` es `silent` por defecto, por lo que en local no se ven logs; en Railway está configurado en `info`.
 
 Con la aplicación en marcha: interfaz en `http://localhost:3000/`, Swagger en `http://localhost:3000/docs`, salud en `/health`.
 
@@ -65,7 +72,7 @@ Solo hay tres reservas públicas. DEMO03–DEMO06 son fixtures internos de prueb
 
 - *Por qué no se confirma una conexión perdida:* una estimación no es un hecho. `MISSED` exige confirmación y el sistema no inventa umbrales; por eso el mensaje dice que la pérdida "no se ha confirmado".
 - *Por qué una alternativa disponible no es una reserva:* la opción LA2412 queda `PENDING_VALIDATION` (alcance no confirmado, condiciones de tarifa incompletas, cambio sin costo no autorizado); LA2450 es `NOT_ELIGIBLE` por asientos insuficientes para el grupo; el reembolso exige revisión. Ninguna está reservada.
-- Políticas: R1 y R2 no aplican (160 min no llega a 180), R3 tiene evidencia insuficiente, R5 requiere aprobación humana.
+- Políticas: R1 (retraso ≥ 180 min) y R2 (retraso ≥ 240 min y vuelo internacional) no aplican: 160 min no alcanza el umbral de 180, R3 tiene evidencia insuficiente, R5 requiere aprobación humana.
 
 **DEMO01 — viaje sin disrupciones.** `COMPLETE`, severidad `NONE`, recomendación `NO_ACTION_REQUIRED` (prioridad `LOW`), alternativas `NOT_REQUIRED`.
 
@@ -77,16 +84,16 @@ Todas las respuestas incluyen `metadata.mode: SIMULATION` y un aviso de que los 
 
 - **340 tests aprobados**: 50 de contratos, 280 de API y 10 de frontend (`pnpm check`, repetido el 2026-11-25 con Node 24.15.0 y pnpm 12.16.1).
 - **CI** en GitHub Actions (`.github/workflows/ci.yml`): `pnpm install --frozen-lockfile` y `pnpm check`, en cada pull request y en `main`.
-- **Humo público acotado** (2026-11-25): `/health` y `/docs` responden 200; ABC123, DEMO01 y DEMO02 devuelven los resultados de la sección 4; DEMO03 devuelve 404. Despliegue funcional `8ee89764-9b8e-4a2e-a157-19c86cc42b58` (commit `f1155b8`).
+- **Pruebas de funcionamiento en producción, acotadas** (2026-11-25): `/health` y `/docs` responden 200; ABC123, DEMO01 y DEMO02 devuelven los resultados de la sección 4; DEMO03 devuelve 404. Despliegue funcional `8ee89764-9b8e-4a2e-a157-19c86cc42b58` (commit `f1155b8`).
 - **Pruebas de privacidad**: los tests rechazan campos inesperados (por ejemplo un correo) en la entrada y en el contrato de salida, y comprueban que el presenter no copia datos crudos del proveedor al DTO público.
 - **Revisión visual**: capturas de inicio y ABC123 a 375 y 1440 px, sin desbordes (`docs/evidence/screenshots/`).
 
 ## 6. Limitaciones conocidas
 
-Datos sintéticos y reloj simulado; sin integración con sistemas reales, sin autenticación de reservas, sin acciones reales y sin LLM en ejecución. Las reglas de dominio (umbral de 30 min, ventanas de frescura, jerarquía de fuentes, mantener unido al grupo) son supuestos pendientes de validación operacional. La limitación de ritmo se calcula sobre la IP directa y detrás del proxy de Railway no se demostró aislamiento por cliente. El `X-Request-Id` no existe en el 404 de rutas desconocidas. La revisión nativa fue parcial, los tests de la interfaz se escribieron después del código, no hay auditoría de accesibilidad completa ni pruebas de carga. Lista priorizada en `README.md`.
+Datos sintéticos y reloj simulado; sin integración con sistemas reales, sin autenticación de reservas, sin operaciones que modifiquen reservas y sin modelo de lenguaje durante la ejecución. Las reglas de dominio (umbral de 30 min, ventanas de frescura, jerarquía de fuentes, mantener unido al grupo) son supuestos pendientes de validación operacional. El límite de solicitudes se calcula sobre la IP directa y detrás del proxy de Railway no se demostró aislamiento por cliente. El `X-Request-Id` no existe en el 404 de rutas desconocidas. La revisión automatizada de código fue parcial, los tests de la interfaz se escribieron después del código, no hay auditoría de accesibilidad completa ni pruebas de carga. Próximos pasos priorizados en `README.md`.
 
 ## 7. Diagramas y verificación de la extensión de los entregables
 
 Los cuatro diagramas (arquitectura, secuencia, flujo de decisiones y límites de IA) están en [`docs/diagrams/`](diagrams/README.md), con SVG, HTML interactivo y fuente regenerable.
 
-Markdown no tiene paginación propia, así que la extensión se comprobó con una impresión A4: se convirtió cada documento a HTML con un conversor mínimo temporal (fuera del repositorio) y se imprimió a PDF con Google Chrome 158 sin interfaz, con márgenes de 15 mm, tablas compactas y texto de 10 pt. Resultado: `README.md` ocupa 2 páginas (el contenido llena unos 1 840 de 2 020 px útiles) y `docs/AI-USAGE.md` ocupa 1 página (unos 960 de 1 010 px). Con texto de 11 pt el README llega a unas 2,1 páginas y AI-USAGE a unas 1,1, y con el estilo de pantalla de GitHub (16 px) ocupan más; por eso el límite se declara cumplido únicamente bajo la medición descrita.
+Markdown no tiene paginación propia, así que la extensión se comprobó con una impresión A4: cada documento se convirtió a HTML con un conversor mínimo temporal (fuera del repositorio) y se imprimió a PDF con Google Chrome 158 sin interfaz, con márgenes de 15 mm, texto de 11 pt (14,67 px) y tablas compactas. Resultado final: `README.md` ocupa **2 páginas** y `docs/AI-USAGE.md` ocupa **1 página**. Es una medición aproximada: GitHub muestra estos archivos con otro estilo y, con su tipografía de pantalla, el texto ocupa más espacio.

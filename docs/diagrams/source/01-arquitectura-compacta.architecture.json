@@ -5,7 +5,19 @@
     "title": "Arquitectura compacta de FlyNext",
     "locale": "es",
     "output": "01-arquitectura-compacta.html",
-    "quality_profile": "showcase"
+    "quality_profile": "showcase",
+    "feedback_links": false,
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "database": {
+          "label": "Fuentes de datos"
+        },
+        "messagebus": {
+          "label": "Registros"
+        }
+      }
+    }
   },
   "components": [
     {
