@@ -206,7 +206,7 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
     "summary": {
       "code": "DISRUPTION_CRITICAL",
       "title": "Tu viaje tiene una alteración importante",
-      "message": "Tu vuelo LA500 tiene un retraso confirmado y tu conexión está en riesgo. Parte de la información todavía no está verificada."
+      "message": "Puede que necesites revisar tu itinerario. Tu vuelo LA500 tiene un retraso confirmado de 160 minutos. Tu conexión está en riesgo."
     },
     "events": [
       {
@@ -248,7 +248,7 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         "message": {
           "code": "FLIGHT_DELAYED_CONFIRMED",
           "title": "Tu vuelo LA500 está retrasado",
-          "message": "El vuelo LA500 sale con 160 minutos de retraso. Su nueva hora estimada de salida es las 17:10 (hora de Santiago). Puerta de embarque: 24."
+          "message": "El retraso confirmado para el vuelo LA500 es de 160 minutos. Su hora estimada de salida es 17:10 (hora de Santiago). Puerta de embarque: 24."
         }
       },
       {
@@ -284,7 +284,7 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         "message": {
           "code": "FLIGHT_ON_SCHEDULE",
           "title": "Tu vuelo LA2410 sigue programado",
-          "message": "Por ahora no hay cambios informados para el vuelo LA2410. La puerta de embarque todavía no está publicada."
+          "message": "Por ahora no hay cambios informados para el vuelo LA2410. Aún no hay información verificada sobre la puerta de embarque."
         }
       }
     ]
@@ -305,10 +305,9 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
     "message": {
       "code": "CONNECTION_AT_RISK_PROJECTED_DELAY",
       "title": "Tu conexión podría verse afectada",
-      "message": "Tu vuelo LA500 presenta un retraso de 160 minutos. Tenías 70 minutos para conectar con tu siguiente vuelo. Debido al retraso, existe el riesgo de que no llegues a tiempo. Estimamos tu llegada a las 20:35 (hora de Lima), pero es una estimación, no una llegada confirmada. El vuelo LA2410 sale a las 19:05 (hora de Lima).",
+      "message": "Con los horarios disponibles, es posible que no llegues a tiempo. No se ha confirmado la pérdida de la conexión. Tu itinerario preveía 70 minutos para conectar. Estimamos tu llegada a las 20:35 (hora de Lima); todavía no se ha confirmado. La salida programada del vuelo LA2410 es a las 19:05 (hora de Lima).",
       "nextSteps": [
-        "Al aterrizar, consulta tu puerta de conexión en las pantallas del aeropuerto.",
-        "Habla con un agente de la aerolínea sobre las opciones para tu itinerario."
+        "Al aterrizar, consulta tu puerta de conexión en las pantallas del aeropuerto."
       ]
     }
   },
@@ -356,10 +355,10 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
     "message": {
       "code": "RECOMMENDATION_HUMAN_REVIEW",
       "title": "Te recomendamos revisar tu itinerario con un agente",
-      "message": "Tu itinerario requiere atención prioritaria. Todavía no podemos confirmar si llegarás a tu conexión ni las condiciones de cambio de tu tarifa, por eso no podemos garantizar un cambio sin costo ni una compensación. Esto es una recomendación: no hemos realizado ninguna acción por ti.",
+      "message": "Tu itinerario requiere atención prioritaria. Sin todas las condiciones de cambio de tu tarifa, no podemos garantizar un cambio sin costo ni una compensación. Esto es una recomendación: no hemos realizado ninguna acción por ti.",
       "nextSteps": [
-        "Acércate a un agente de la aerolínea en el aeropuerto o por sus canales de atención e indica tu código de reserva.",
-        "Ten a mano tus documentos de viaje."
+        "Habla con un agente de la aerolínea sobre las opciones para tu itinerario.",
+        "Ten a mano tu código de reserva y tus documentos de viaje."
       ]
     }
   },
@@ -383,8 +382,8 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         ],
         "message": {
           "code": "OPTION_PENDING_VALIDATION",
-          "title": "Vuelo LA2412 · 16 sep, 08:15 (hora de Lima)",
-          "message": "Es una posibilidad, pero todavía no está validada: no está confirmado que llegues a tiempo, se desconocen las condiciones de cambio de tu tarifa y el cambio sin costo no está autorizado. Un agente debe revisarla. Esta opción no está reservada ni garantizada."
+          "title": "Vuelo LA2412 · 16 sept, 08:15 (hora de Lima)",
+          "message": "Esta opción todavía no está validada ni reservada. No está confirmado que llegues a tiempo. Falta verificar qué condiciones de cambio se aplican a tu tarifa. El cambio sin costo todavía no está autorizado."
         }
       },
       {
@@ -402,8 +401,8 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         ],
         "message": {
           "code": "OPTION_NOT_ELIGIBLE_SEATS",
-          "title": "Vuelo LA2450 · 15 sep, 23:40 (hora de Lima)",
-          "message": "Este vuelo no tiene asientos suficientes para todo tu grupo y no separamos a los pasajeros automáticamente."
+          "title": "Vuelo LA2450 · 15 sept, 23:40 (hora de Lima)",
+          "message": "No separamos a los pasajeros automáticamente. No hay asientos suficientes para todo tu grupo."
         }
       },
       {
@@ -417,7 +416,7 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         "message": {
           "code": "OPTION_REFUND_REQUIRES_REVIEW",
           "title": "Reembolso",
-          "message": "El reembolso es una posibilidad que requiere revisión. La información disponible es poco confiable y no podemos asegurar que se otorgue."
+          "message": "La posibilidad de un reembolso debe revisarse; no podemos asegurar que se otorgue. La información disponible sobre esta opción es limitada."
         }
       }
     ]
@@ -432,18 +431,16 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
     {
       "code": "SOURCE_CONFLICT_RESOLVED",
       "title": "Datos contrastados",
-      "message": "Algunos datos operativos se verificaron con la fuente más confiable disponible."
+      "message": "Se pudieron verificar datos operativos que no coincidían entre sí."
     },
     {
       "code": "FARE_CONDITIONS_INCOMPLETE",
       "title": "Condiciones de tarifa incompletas",
-      "message": "No conocemos la penalidad por cambio de tu tarifa, por lo que no se garantiza un cambio sin costo."
+      "message": "No se han verificado todas las condiciones de cambio de tu tarifa."
     }
   ],
   "metadata": {
     "assessedAt": "2026-09-15T11:02:40Z",
-    "mode": "SIMULATION",
-    "dataSnapshot": "historical-fixture",
     "locale": "es",
     "policyRefs": [
       {
@@ -451,6 +448,8 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         "version": "2026.03"
       }
     ],
+    "mode": "SIMULATION",
+    "dataSnapshot": "historical-fixture",
     "notice": {
       "code": "SIMULATION_MODE",
       "title": "Datos de demostración",
@@ -470,7 +469,7 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
     "severity": "NONE",
     "summary": {
       "code": "DISRUPTION_NONE",
-      "title": "Tu viaje no presenta alteraciones",
+      "title": "Tu viaje no presenta alteraciones verificadas",
       "message": "No hay alteraciones verificadas en tu viaje."
     },
     "events": [
@@ -507,7 +506,7 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         "message": {
           "code": "FLIGHT_ON_TIME",
           "title": "Tu vuelo LA501 está en horario",
-          "message": "No hay retrasos informados para el vuelo LA501. La puerta de embarque todavía no está publicada."
+          "message": "No hay retrasos informados para el vuelo LA501. Aún no hay información verificada sobre la puerta de embarque."
         }
       }
     ]
@@ -571,8 +570,6 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
   "warnings": [],
   "metadata": {
     "assessedAt": "2026-09-15T11:02:40Z",
-    "mode": "SIMULATION",
-    "dataSnapshot": "historical-fixture",
     "locale": "es",
     "policyRefs": [
       {
@@ -580,6 +577,8 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         "version": "2026.03"
       }
     ],
+    "mode": "SIMULATION",
+    "dataSnapshot": "historical-fixture",
     "notice": {
       "code": "SIMULATION_MODE",
       "title": "Datos de demostración",
@@ -599,8 +598,8 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
     "severity": "WARNING",
     "summary": {
       "code": "DISRUPTION_RELEVANT",
-      "title": "Tu vuelo tiene un retraso importante",
-      "message": "Tu vuelo LA502 tiene un retraso confirmado de 190 minutos."
+      "title": "Tu viaje tiene una alteración relevante",
+      "message": "Revisa los datos de tu viaje. Tu vuelo LA502 tiene un retraso confirmado de 190 minutos."
     },
     "events": [
       {
@@ -642,7 +641,7 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         "message": {
           "code": "FLIGHT_DELAYED_CONFIRMED",
           "title": "Tu vuelo LA502 está retrasado",
-          "message": "El vuelo LA502 sale con 190 minutos de retraso. Su nueva hora estimada de salida es las 17:40 (hora de Santiago). La puerta de embarque todavía no está publicada."
+          "message": "El retraso confirmado para el vuelo LA502 es de 190 minutos. Su hora estimada de salida es 17:40 (hora de Santiago)."
         }
       }
     ]
@@ -688,10 +687,9 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
     "message": {
       "code": "RECOMMENDATION_REVIEW_OPTIONS",
       "title": "Revisa tus opciones de cambio de vuelo",
-      "message": "Con un retraso de 190 minutos, la política aplicable contempla un cambio de vuelo sin penalidad, sujeto a la confirmación de un agente. Encontramos una opción que cumple las condiciones verificadas. Esto es una recomendación: no hemos modificado tu reserva.",
+      "message": "Con un retraso confirmado de 190 minutos, la política aplicable contempla un cambio de vuelo sin penalidad, sujeto a la confirmación de un agente. Hay opciones que cumplen las condiciones verificadas de la evaluación. Esto es una recomendación: no hemos modificado tu reserva.",
       "nextSteps": [
-        "Revisa la opción propuesta.",
-        "Confirma el cambio con un agente de la aerolínea."
+        "Revisa las opciones propuestas y confirma los detalles con un agente de la aerolínea."
       ]
     }
   },
@@ -711,8 +709,8 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         "reasonCodes": [],
         "message": {
           "code": "OPTION_ELIGIBLE",
-          "title": "Vuelo LA1001 · 15 sep, 20:30 (hora de Santiago)",
-          "message": "Esta opción cumple las condiciones verificadas: hay asientos para todo tu grupo y la información está vigente. Aún no está reservada: un agente debe confirmar el cambio."
+          "title": "Vuelo LA1001 · 15 sept, 20:30 (hora de Santiago)",
+          "message": "Esta opción cumple las condiciones verificadas para todo tu grupo. No está reservada: un agente debe confirmar que sigue disponible antes de cualquier cambio."
         }
       }
     ]
@@ -726,8 +724,6 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
   "warnings": [],
   "metadata": {
     "assessedAt": "2026-09-15T11:02:40Z",
-    "mode": "SIMULATION",
-    "dataSnapshot": "historical-fixture",
     "locale": "es",
     "policyRefs": [
       {
@@ -735,6 +731,8 @@ Policies are shown with the five evaluations in order R1–R5. `decisionTrace` i
         "version": "2026.03"
       }
     ],
+    "mode": "SIMULATION",
+    "dataSnapshot": "historical-fixture",
     "notice": {
       "code": "SIMULATION_MODE",
       "title": "Datos de demostración",

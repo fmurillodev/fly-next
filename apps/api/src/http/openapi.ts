@@ -24,7 +24,7 @@ const demo01 = AssessmentResponseSchema.parse({
     severity: "NONE",
     summary: {
       code: "DISRUPTION_NONE",
-      title: "Tu viaje no presenta alteraciones",
+      title: "Tu viaje no presenta alteraciones verificadas",
       message: "No hay alteraciones verificadas en tu viaje.",
     },
     events: [
@@ -78,6 +78,9 @@ const demo01 = AssessmentResponseSchema.parse({
       code: "RECOMMENDATION_NO_ACTION",
       title: "No necesitas hacer nada por ahora",
       message: "Tu vuelo está en horario según la información verificada.",
+      nextSteps: [
+        "Revisa el estado de tu vuelo antes de salir al aeropuerto: la información puede cambiar.",
+      ],
     },
   },
   alternatives: { status: "NOT_REQUIRED" },
