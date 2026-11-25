@@ -6,6 +6,7 @@ import {
 } from "../disruption/application/assess-disruption.js";
 import { presentAssessment } from "../disruption/presentation/present-assessment.js";
 import { instrumentProviders, logAssessment } from "../shared/observability.js";
+import { parseAssessmentJson } from "./assessment-json.js";
 import { createAssessmentLimit } from "./assessment-limit.js";
 import { applicationProblems, sendProblem } from "./problem-details.js";
 import { ASSESSMENT_BODY_LIMIT, ASSESSMENT_PATH } from "./public-api.js";
@@ -15,6 +16,25 @@ export function registerAssessmentRoute(
   deps: AssessDisruptionDeps,
   rateLimitMax: number,
 ): void {
+  app.register((scope, _options, done) => {
+    scope.removeContentTypeParser("application/json");
+    scope.addContentTypeParser(
+      "application/json",
+      { parseAs: "string" },
+      (_request, body, parsed) => {
+        parsed(null, parseAssessmentJson(body.toString()));
+      },
+    );
+    addAssessmentRoute(scope, deps, rateLimitMax);
+    done();
+  });
+}
+
+function addAssessmentRoute(
+  app: FastifyInstance,
+  deps: AssessDisruptionDeps,
+  rateLimitMax: number,
+) {
   const limit = createAssessmentLimit(rateLimitMax);
 
   app.post(

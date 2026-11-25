@@ -255,6 +255,42 @@ describe("POST /api/v1/disruptions/assessment", () => {
     expect(getTripContext).not.toHaveBeenCalled();
   });
 
+  it.each([
+    '{"bookingId":"ABC123","bookingId":"ABC123"}',
+    String.raw`{"bookingId":"synthetic@example.invalid","booking\u0049d":"ABC123"}`,
+  ])("rejects repeated bookingId members before calling providers (%#)", async (payload) => {
+    const getTripContext = vi.fn(createMockProviders().trips.getTripContext);
+    const { lines, stream } = capture();
+    const app = makeApp({
+      logLevel: "info",
+      logStream: stream,
+      providers: { trips: { getTripContext } },
+    });
+    const response = await app.inject({
+      method: "POST",
+      url: endpoint,
+      headers: { "content-type": "application/json" },
+      payload,
+    });
+    expectProblem(response, ...invalidRequest);
+    expect(getTripContext).not.toHaveBeenCalled();
+    expect(`${response.body}${lines.join("")}`).not.toMatch(/ABC123|synthetic@example\.invalid/);
+  });
+
+  it("accepts a single escaped bookingId member with JSON whitespace", async () => {
+    const getTripContext = vi.fn(createMockProviders().trips.getTripContext);
+    const app = makeApp({ providers: { trips: { getTripContext } } });
+    const response = await app.inject({
+      method: "POST",
+      url: endpoint,
+      headers: { "content-type": "application/json; charset=utf-8" },
+      payload: `\r\n{\t${String.raw`"booking\u0049d"`}\r:\n${String.raw`"\u0041BC123"`}\t}\r\n`,
+    });
+    expect(response.statusCode).toBe(200);
+    expect(AssessmentResponseSchema.safeParse(response.json()).success).toBe(true);
+    expect(getTripContext).toHaveBeenCalledExactlyOnceWith("ABC123");
+  });
+
   it.each(["a", "a".repeat(32)])("accepts a well-formed booking ID of length %s", async (id) => {
     expectProblem(await assess(makeApp(), id), ...bookingNotFound);
   });
@@ -300,6 +336,53 @@ describe("POST /api/v1/disruptions/assessment", () => {
       }),
     );
     expectProblem(response, code, status, title, detail);
+  });
+
+  it.each(["synthetic@example.invalid", undefined])(
+    "sanitizes a required booking with an invalid or missing flight designator (%#)",
+    async (flightNumber) => {
+      const marker = "synthetic@example.invalid";
+      const { lines, stream } = capture();
+      const fixture = SCENARIOS.ABC123!;
+      const booking = {
+        ...fixture.booking,
+        segments: fixture.booking.segments.map((segment) => {
+          const raw = { ...segment, flightNumber };
+          if (flightNumber === undefined) Reflect.deleteProperty(raw, "flightNumber");
+          return raw;
+        }),
+      } as typeof fixture.booking; // The raw provider input may be missing required fields.
+      const providers = createMockProviders({ ABC123: { ...fixture, booking } });
+      const getOperationalEvents = vi.fn(providers.events.getOperationalEvents);
+      const response = await assess(
+        makeApp({
+          logLevel: "info",
+          logStream: stream,
+          providers: { ...providers, events: { getOperationalEvents } },
+        }),
+      );
+      expectProblem(response, ...invalidUpstream);
+      expect(getOperationalEvents).not.toHaveBeenCalled();
+      expect(`${response.body}${lines.join("")}`).not.toContain(marker);
+    },
+  );
+
+  it("degrades safely without exposing an invalid alternative flight designator", async () => {
+    const marker = "synthetic@example.invalid";
+    const { lines, stream } = capture();
+    const fixture = SCENARIOS.ABC123!;
+    const options = fixture.options.map((option) =>
+      option.kind === "FLIGHT" ? { ...option, flightNumber: marker } : option,
+    );
+    const providers = createMockProviders({ ABC123: { ...fixture, options } });
+    const response = await assess(makeApp({ logLevel: "info", logStream: stream, providers }));
+    expect(response.statusCode).toBe(200);
+    expect(AssessmentResponseSchema.parse(response.json())).toMatchObject({
+      assessmentStatus: "PARTIAL",
+      alternatives: { status: "UNAVAILABLE", reasonCode: "ALTERNATIVES_UNAVAILABLE" },
+      actions: { executed: [] },
+    });
+    expect(`${response.body}${lines.join("")}`).not.toContain(marker);
   });
 
   it("maps stale booking data to the same public 502 without exposing the internal reason", async () => {
