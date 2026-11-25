@@ -1,5 +1,5 @@
 /**
- * Product assumptions (not LATAM policy). Each value is configurable and awaits validation with
+ * Product assumptions (not an airline policy). Each value is configurable and awaits validation with
  * Product and Operations (D01, D03). Policy thresholds (R1 = 180, R2 = 240) are NOT here: they are
  * approved rule definitions in `policies.ts`.
  */

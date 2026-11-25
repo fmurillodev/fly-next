@@ -1,6 +1,6 @@
 # FlyNext — Domain Decisions (D01–D10)
 
-> Approved by the maintainer in Master Engineering Specification v1.0. Preserved here without reinterpretation. Items marked **[assumption]** need validation with Product, Operations or system owners and are not LATAM policy.
+> Approved by the maintainer in Master Engineering Specification v1.0. Preserved here without reinterpretation. Items marked **[assumption]** need validation with Product, Operations or system owners and are not airline policy.
 
 ## Base case ABC123
 

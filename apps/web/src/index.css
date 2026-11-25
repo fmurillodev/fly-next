@@ -1,1 +1,47 @@
+@import "@fontsource-variable/manrope";
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-midnight: #080b35;
+  --color-deep: #111b80;
+  --color-indigo: #535cf5;
+  --color-soft: #828bff;
+  --color-canvas: #f3f5fa;
+
+  --radius-card: 1.5rem;
+  --radius-input: 0.75rem;
+  --shadow-card: 0 1px 2px rgb(8 11 53 / 0.04), 0 8px 24px rgb(8 11 53 / 0.06);
+  --container-page: 75rem;
+}
+
+@layer base {
+  body {
+    background: var(--color-canvas);
+    color: var(--color-midnight);
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-indigo);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility hero-surface {
+  background:
+    radial-gradient(60rem 30rem at 85% -10%, rgb(83 92 245 / 0.55), transparent 60%),
+    radial-gradient(40rem 24rem at 0% 110%, rgb(130 139 255 / 0.25), transparent 60%),
+    linear-gradient(160deg, var(--color-midnight) 0%, var(--color-deep) 100%);
+}

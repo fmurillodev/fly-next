@@ -14,6 +14,7 @@ import { registerAssessmentRoute } from "./http/assessment-route.js";
 import { registerDocs } from "./http/openapi.js";
 import { sendProblem } from "./http/problem-details.js";
 import { PUBLIC_BOOKINGS, serviceInfo } from "./http/public-api.js";
+import { hasWebBuild, registerStaticWeb } from "./http/static-web.js";
 
 export type BuildAppOptions = {
   logLevel?: string;
@@ -21,6 +22,8 @@ export type BuildAppOptions = {
   rateLimitMax?: number;
   providers?: Partial<MockProviders>;
   clock?: AssessDisruptionDeps["clock"];
+  /** Compiled frontend directory; the service stays API-only when absent or not built. */
+  webRoot?: string;
 };
 
 const invalidBodyCodes = new Set([
@@ -82,7 +85,8 @@ export function buildApp(options: BuildAppOptions = {}): FastifyInstance {
     reply.code(404).send({ statusCode: 404, error: "Not Found", message: "Route not found" }),
   );
 
-  app.get("/", async () => serviceInfo);
+  if (hasWebBuild(options.webRoot)) registerStaticWeb(app, options.webRoot);
+  else app.get("/", async () => serviceInfo);
   app.get(serviceInfo.health, async (): Promise<HealthResponse> => ({ status: "ok" }));
 
   const publicFixtures: Record<string, ScenarioFixture> = {};

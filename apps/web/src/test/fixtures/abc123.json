@@ -1,0 +1,248 @@
+{
+  "requestId": "req_7fb84022-fef0-4f09-9d54-775a18ca7fe7",
+  "assessmentStatus": "PARTIAL",
+  "disruption": {
+    "severity": "CRITICAL",
+    "summary": {
+      "code": "DISRUPTION_CRITICAL",
+      "title": "Tu viaje tiene una alteraci\u00f3n importante",
+      "message": "Puede que necesites revisar tu itinerario. Tu vuelo LA500 tiene un retraso confirmado de 160 minutos. Tu conexi\u00f3n est\u00e1 en riesgo."
+    },
+    "events": [
+      {
+        "segmentId": "S1",
+        "flightNumber": "LA500",
+        "origin": {
+          "code": "SCL",
+          "timeZone": "America/Santiago"
+        },
+        "destination": {
+          "code": "LIM",
+          "timeZone": "America/Lima"
+        },
+        "scheduledDeparture": {
+          "local": "2026-09-15T14:30:00-03:00",
+          "timeZone": "America/Santiago",
+          "utc": "2026-09-15T17:30:00Z"
+        },
+        "scheduledArrival": {
+          "local": "2026-09-15T17:55:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-15T22:55:00Z"
+        },
+        "flightStatus": "DELAYED",
+        "severity": "WARNING",
+        "delay": {
+          "status": "CONFIRMED",
+          "minutes": 160
+        },
+        "estimatedDeparture": {
+          "local": "2026-09-15T17:10:00-03:00",
+          "timeZone": "America/Santiago",
+          "utc": "2026-09-15T20:10:00Z"
+        },
+        "gate": {
+          "status": "KNOWN",
+          "value": "24"
+        },
+        "message": {
+          "code": "FLIGHT_DELAYED_CONFIRMED",
+          "title": "Tu vuelo LA500 est\u00e1 retrasado",
+          "message": "El retraso confirmado para el vuelo LA500 es de 160 minutos. Su hora estimada de salida es 17:10 (hora de Santiago). Puerta de embarque: 24."
+        }
+      },
+      {
+        "segmentId": "S2",
+        "flightNumber": "LA2410",
+        "origin": {
+          "code": "LIM",
+          "timeZone": "America/Lima"
+        },
+        "destination": {
+          "code": "MEX",
+          "timeZone": "America/Mexico_City"
+        },
+        "scheduledDeparture": {
+          "local": "2026-09-15T19:05:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-16T00:05:00Z"
+        },
+        "scheduledArrival": {
+          "local": "2026-09-15T23:40:00-06:00",
+          "timeZone": "America/Mexico_City",
+          "utc": "2026-09-16T05:40:00Z"
+        },
+        "flightStatus": "SCHEDULED",
+        "severity": "NONE",
+        "delay": {
+          "status": "NOT_DELAYED"
+        },
+        "gate": {
+          "status": "UNKNOWN",
+          "reason": "UNAVAILABLE"
+        },
+        "message": {
+          "code": "FLIGHT_ON_SCHEDULE",
+          "title": "Tu vuelo LA2410 sigue programado",
+          "message": "Por ahora no hay cambios informados para el vuelo LA2410. A\u00fan no hay informaci\u00f3n verificada sobre la puerta de embarque."
+        }
+      }
+    ]
+  },
+  "connection": {
+    "status": "AT_RISK",
+    "lossConfirmation": "NOT_CONFIRMED",
+    "originalConnectionMinutes": 70,
+    "inboundArrival": {
+      "time": {
+        "local": "2026-09-15T20:35:00-05:00",
+        "timeZone": "America/Lima",
+        "utc": "2026-09-16T01:35:00Z"
+      },
+      "confirmed": false
+    },
+    "marginMinutes": -90,
+    "message": {
+      "code": "CONNECTION_AT_RISK_PROJECTED_DELAY",
+      "title": "Tu conexi\u00f3n podr\u00eda verse afectada",
+      "message": "Con los horarios disponibles, es posible que no llegues a tiempo. No se ha confirmado la p\u00e9rdida de la conexi\u00f3n. Tu itinerario preve\u00eda 70 minutos para conectar. Estimamos tu llegada a las 20:35 (hora de Lima); todav\u00eda no se ha confirmado. La salida programada del vuelo LA2410 es a las 19:05 (hora de Lima).",
+      "nextSteps": [
+        "Al aterrizar, consulta tu puerta de conexi\u00f3n en las pantallas del aeropuerto."
+      ]
+    }
+  },
+  "policies": {
+    "available": true,
+    "policyId": "POL-DELAY-2026-03",
+    "version": "2026.03",
+    "validity": "VALID",
+    "evaluations": [
+      {
+        "rule": "R1",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R2",
+        "benefit": "MEAL_VOUCHER",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R3",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "INSUFFICIENT_EVIDENCE"
+      },
+      {
+        "rule": "R4",
+        "benefit": "CASH_COMPENSATION",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R5",
+        "benefit": "PRIORITY_HANDLING",
+        "status": "REQUIRES_HUMAN_APPROVAL"
+      }
+    ]
+  },
+  "recommendation": {
+    "type": "HUMAN_REVIEW",
+    "priority": "HIGH",
+    "reasonCodes": ["CONNECTION_AT_RISK", "PRIORITY_REVIEW_REQUIRED", "INCOMPLETE_FARE_CONDITIONS"],
+    "message": {
+      "code": "RECOMMENDATION_HUMAN_REVIEW",
+      "title": "Te recomendamos revisar tu itinerario con un agente",
+      "message": "Tu itinerario requiere atenci\u00f3n prioritaria. Sin todas las condiciones de cambio de tu tarifa, no podemos garantizar un cambio sin costo ni una compensaci\u00f3n. Esto es una recomendaci\u00f3n: no hemos realizado ninguna acci\u00f3n por ti.",
+      "nextSteps": [
+        "Habla con un agente de la aerol\u00ednea sobre las opciones para tu itinerario.",
+        "Ten a mano tu c\u00f3digo de reserva y tus documentos de viaje."
+      ]
+    }
+  },
+  "alternatives": {
+    "status": "EVALUATED",
+    "options": [
+      {
+        "optionId": "O1",
+        "kind": "FLIGHT",
+        "flightNumber": "LA2412",
+        "departure": {
+          "local": "2026-09-16T08:15:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-16T13:15:00Z"
+        },
+        "eligibility": "PENDING_VALIDATION",
+        "reasonCodes": [
+          "REACHABILITY_UNCONFIRMED",
+          "FARE_CONDITIONS_INCOMPLETE",
+          "REBOOKING_NOT_AUTHORIZED_BY_POLICY"
+        ],
+        "message": {
+          "code": "OPTION_PENDING_VALIDATION",
+          "title": "Vuelo LA2412 \u00b7 16 sept, 08:15 (hora de Lima)",
+          "message": "Esta opci\u00f3n todav\u00eda no est\u00e1 validada ni reservada. No est\u00e1 confirmado que llegues a tiempo. Falta verificar qu\u00e9 condiciones de cambio se aplican a tu tarifa. El cambio sin costo todav\u00eda no est\u00e1 autorizado."
+        }
+      },
+      {
+        "optionId": "O2",
+        "kind": "FLIGHT",
+        "flightNumber": "LA2450",
+        "departure": {
+          "local": "2026-09-15T23:40:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-16T04:40:00Z"
+        },
+        "eligibility": "NOT_ELIGIBLE",
+        "reasonCodes": ["INSUFFICIENT_SEATS_FOR_GROUP"],
+        "message": {
+          "code": "OPTION_NOT_ELIGIBLE_SEATS",
+          "title": "Vuelo LA2450 \u00b7 15 sept, 23:40 (hora de Lima)",
+          "message": "No separamos a los pasajeros autom\u00e1ticamente. No hay asientos suficientes para todo tu grupo."
+        }
+      },
+      {
+        "optionId": "O3",
+        "kind": "REFUND",
+        "eligibility": "REQUIRES_REVIEW",
+        "reasonCodes": ["REFUND_REQUIRES_REVIEW", "LOW_CONFIDENCE"],
+        "message": {
+          "code": "OPTION_REFUND_REQUIRES_REVIEW",
+          "title": "Reembolso",
+          "message": "La posibilidad de un reembolso debe revisarse; no podemos asegurar que se otorgue. La informaci\u00f3n disponible sobre esta opci\u00f3n es limitada."
+        }
+      }
+    ]
+  },
+  "actions": {
+    "executed": [],
+    "recommended": ["HUMAN_REVIEW"]
+  },
+  "warnings": [
+    {
+      "code": "SOURCE_CONFLICT_RESOLVED",
+      "title": "Datos contrastados",
+      "message": "Se pudieron verificar datos operativos que no coincid\u00edan entre s\u00ed."
+    },
+    {
+      "code": "FARE_CONDITIONS_INCOMPLETE",
+      "title": "Condiciones de tarifa incompletas",
+      "message": "No se han verificado todas las condiciones de cambio de tu tarifa."
+    }
+  ],
+  "metadata": {
+    "assessedAt": "2026-09-15T11:02:40Z",
+    "locale": "es",
+    "policyRefs": [
+      {
+        "id": "POL-DELAY-2026-03",
+        "version": "2026.03"
+      }
+    ],
+    "mode": "SIMULATION",
+    "dataSnapshot": "historical-fixture",
+    "notice": {
+      "code": "SIMULATION_MODE",
+      "title": "Datos de demostraci\u00f3n",
+      "message": "Esta evaluaci\u00f3n usa datos sint\u00e9ticos hist\u00f3ricos y no refleja informaci\u00f3n operacional en tiempo real."
+    }
+  }
+}

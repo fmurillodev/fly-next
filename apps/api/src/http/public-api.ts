@@ -5,7 +5,7 @@ export const PUBLIC_BOOKINGS = ["ABC123", "DEMO01", "DEMO02"] as const;
 export const serviceInfo = {
   name: "FlyNext",
   tagline: "Your journey. Your next step.",
-  notice: "Independent demonstration; not an official LATAM product.",
+  notice: "Independent demonstration with synthetic data.",
   docs: "/docs",
   health: "/health",
 };

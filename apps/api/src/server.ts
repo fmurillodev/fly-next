@@ -1,5 +1,6 @@
 import { buildApp } from "./app.js";
 import { loadConfig } from "./config.js";
+import { defaultWebRoot } from "./http/static-web.js";
 import { startupFailureRecord, type StartupStage } from "./shared/observability.js";
 
 let stage: StartupStage = "CONFIG";
@@ -7,7 +8,7 @@ let stage: StartupStage = "CONFIG";
 try {
   const { host, port, logLevel, rateLimitMax } = loadConfig();
   stage = "INIT";
-  const app = buildApp({ logLevel, rateLimitMax });
+  const app = buildApp({ logLevel, rateLimitMax, webRoot: defaultWebRoot });
 
   async function shutdown(): Promise<void> {
     app.log.info({ category: "METRIC", event: "service.stopping" });
