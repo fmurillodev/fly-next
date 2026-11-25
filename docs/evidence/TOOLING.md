@@ -149,3 +149,10 @@ Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm
 - **Visual QA:** headless Google Chrome driven over the DevTools protocol (script kept outside the repository). Home and the three public scenarios at 375, 390, 768, 1024 and 1440 px showed no horizontal overflow; screenshots of the home and ABC123 at 375 and 1440 px are in `docs/evidence/screenshots/`. Keyboard flow, contrast ratios and a screen reader were not audited with dedicated tools; focus rings, labels, `role=status`/`alert` and reduced-motion rules are implemented and covered only by unit tests.
 - **Deployment note:** the Railway build command already runs `pnpm build`, so the next deploy will include the frontend; nothing was deployed in this PR.
 
+## PR-05 merge, deployment and public smoke (G5) — observed 2026-11-25
+
+- **Merge:** PR #5 merged preserving history as `f1155b8e99a0db993168461f150dd1788c92d1ee`; merged tree equals the PR head tree (`83875c9`). PR CI run `45700057903` and `main` CI run `45700182009` succeeded. Branch kept.
+- **Deployment:** `railway up --ci -s flynext-api` from a clean `f1155b8` checkout; deployment `8ee89764-9b8e-4a2e-a157-19c86cc42b58` SUCCESS; no new services or resources; variables unchanged.
+- **Public smoke:** HTTPS checks of `/`, assets, `/health`, `/docs`, `/docs/json`, the assessment and the sanitized 404; headless Chrome flows for ABC123, DEMO01, DEMO02, unknown booking and new query at 1440 and 375 px with no overflow, JavaScript exceptions or CORS errors. Expected 404s: unknown bookings and `/favicon.ico`.
+- **Not done:** load testing, rate-limit exhaustion, screen-reader audit.
+
