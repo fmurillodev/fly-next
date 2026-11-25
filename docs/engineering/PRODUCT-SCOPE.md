@@ -2,7 +2,7 @@
 
 > Status: PR-00 proposal for maintainer review. Derived from the approved Master Engineering Specification v1.0.
 
-FlyNext is an independent demo, **not an official LATAM product**. Challenge: LATAM Senior Software Engineer, Case A — Disruption Companion. Primary track: Backend/Integration. Tagline: *Your journey. Your next step.*
+FlyNext is an independent demo, **not an official airline product**. Case A — Disruption Companion. Primary track: Backend/Integration. Tagline: *Your journey. Your next step.*
 
 ## Goal
 
@@ -20,7 +20,7 @@ Reduce passenger uncertainty during operational disruptions with verified inform
 
 - Any write operation: rebooking, compensation, refund, human-case creation, notifications, booking changes (designed as future contracts only).
 - LLM/agents at runtime (hybrid evolution documented only).
-- Authentication/authorization on real bookings, real airline systems, databases, queues, circuit breakers, admin dashboard, chatbot, official LATAM branding.
+- Authentication/authorization on real bookings, real airline systems, databases, queues, circuit breakers, admin dashboard, chatbot, official airline branding.
 - Real-time operational data: fixtures are historical and evaluated in an explicit simulation mode.
 
 ## Constraints
@@ -39,7 +39,7 @@ Three-hour total budget (analysis included, never restarted); 10-minute presenta
 | Scope decisions | read-only V1, frontend complementary |
 | Security constraints | synthetic data only, PII minimization, sanitized errors, rate limiting |
 
-Thresholds, freshness windows, source hierarchy and group-keeping **require validation with Product, Operations or system owners before any real implementation** and are not LATAM policy.
+Thresholds, freshness windows, source hierarchy and group-keeping **require validation with Product, Operations or system owners before any real implementation** and are not airline policy.
 
 ## Demo scenarios
 

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "FlyNext monorepo (independent demo; not an official LATAM product)",
+  "description": "FlyNext monorepo (independent demo; not an official airline product)",
   "packageManager": "pnpm@12.16.1",
   "engines": {
     "node": "^24.15.0",

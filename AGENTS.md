@@ -1,6 +1,6 @@
 # FlyNext — Permanent Agent Constraints
 
-FlyNext (repo `fly-next`) is an independent demo for the LATAM Senior Software Engineer challenge, Case A (Disruption Companion). It is **not** an official LATAM product. Tagline: *Your journey. Your next step.*
+FlyNext (repo `fly-next`) is an independent demo (Case A, Disruption Companion). It is **not** an official airline product. Tagline: *Your journey. Your next step.*
 
 The human maintainer owns product, architecture, scope, security, implementation and deployment decisions. Approved decisions (see `docs/engineering/DOMAIN-DECISIONS.md`) must not be reinterpreted, replaced or extended. Report contradictions to the maintainer before changing anything.
 
@@ -27,6 +27,10 @@ The human maintainer owns product, architecture, scope, security, implementation
 - Public repo and public API: synthetic fixtures only. No PII, credentials, local environment-file values, original challenge PDF, process emails, raw prompts, personal paths or auth config.
 - Public DTOs and logs use allowlists/mappers; no passenger names, documents, emails, phones, exact ages or raw provider payloads.
 - Errors are sanitized; no stack traces.
+
+## Independent identity
+
+No reference to any airline brand or to the challenge sponsor in any public file: source, UI copy, metadata, docs, fixtures, comments, graphics, screenshots, commit messages or PR text. Neutral wording such as "the airline" or "an agent of the airline" is allowed. Before publishing and at release, verify with a case-insensitive search over the versioned tree (the brand name must return no match).
 
 ## Language
 

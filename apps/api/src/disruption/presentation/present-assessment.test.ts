@@ -190,9 +190,7 @@ describe("public assessment examples", () => {
       /atención prioritaria.*no podemos garantizar.*sin costo.*compensación/i,
     );
     expect(passengerCopy(dto)).toMatch(/no refleja información operacional en tiempo real/i);
-    expect(passengerCopy(dto)).not.toMatch(
-      /perdiste|conexión perdida|undefined|\bLATAM\b|[A-Z]+_[A-Z_]+/,
-    );
+    expect(passengerCopy(dto)).not.toMatch(/perdiste|conexión perdida|undefined|[A-Z]+_[A-Z_]+/);
   });
 
   it("changes the Spanish output with the flight, delay, gate and local time", async () => {

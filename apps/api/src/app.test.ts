@@ -646,7 +646,7 @@ describe("public information and documentation", () => {
     expect(response.json()).toEqual({
       name: "FlyNext",
       tagline: "Your journey. Your next step.",
-      notice: "Independent demonstration; not an official LATAM product.",
+      notice: "Independent demonstration with synthetic data.",
       docs: "/docs",
       health: "/health",
     });

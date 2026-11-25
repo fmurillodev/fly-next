@@ -181,7 +181,7 @@ interface PassengerMessage {
 - Facts, estimates and uncertainty use different wording ("confirmado", "estimamos", "todavía no está verificado"). A projected arrival is always labelled as an estimate.
 - Never guarantee availability, no-fee changes, compensation or refunds; never claim an action was performed ("esto es una recomendación: no hemos realizado ninguna acción").
 - No internal enum names, reason codes, source names, contradiction details, minor/age data or counts of seats. The priority for a group with a minor is expressed as "atención prioritaria" (A05).
-- No LATAM branding; "un agente de la aerolínea".
+- No airline branding; "un agente de la aerolínea".
 - No duplicated sentences between sections; tone informative, not alarmist (severity drives style in the UI, not exclamation in the text).
 - Times are rendered in the airport's own zone with its name ("17:10 (hora de Santiago)"); dates in short Spanish form.
 
