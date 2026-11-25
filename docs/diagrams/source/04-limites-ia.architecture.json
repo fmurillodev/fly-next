@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Límites de IA y decisiones",
+    "locale": "es",
+    "output": "04-limites-ia.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "auto"
+  },
+  "components": [
+    {
+      "id": "pas",
+      "type": "external",
+      "label": "Pasajero",
+      "sublabel": "consulta"
+    },
+    {
+      "id": "engine",
+      "type": "backend",
+      "label": "Motor determinista",
+      "sublabel": "reglas de negocio",
+      "tag": "IMPLEMENTADO"
+    },
+    {
+      "id": "human",
+      "type": "external",
+      "label": "Agente humano",
+      "sublabel": "revisa y decide",
+      "tag": "HUMAN-CONTROLLED"
+    },
+    {
+      "id": "nl",
+      "type": "frontend",
+      "label": "Intérprete de consultas",
+      "sublabel": "entiende la intención",
+      "tag": "AI-ASSISTED · PROPUESTO"
+    },
+    {
+      "id": "agent",
+      "type": "backend",
+      "label": "Orquestador",
+      "sublabel": "planifica llamadas",
+      "tag": "AGENTIC · PROPUESTO"
+    },
+    {
+      "id": "tools",
+      "type": "security",
+      "label": "Herramientas de lectura",
+      "sublabel": "allowlist y límites",
+      "tag": "PROPUESTO"
+    },
+    {
+      "id": "explain",
+      "type": "frontend",
+      "label": "Explicación contextual",
+      "sublabel": "redacta sin decidir",
+      "tag": "AI-ASSISTED · PROPUESTO"
+    },
+    {
+      "id": "write",
+      "type": "security",
+      "label": "Acciones sensibles",
+      "sublabel": "autorización e idempotencia",
+      "tag": "PROPUESTO"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Presente: motor determinista, sin LLM",
+      "wraps": [
+        "engine"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Futuro propuesto, no implementado",
+      "wraps": [
+        "nl",
+        "agent",
+        "tools",
+        "explain",
+        "write"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "k1",
+      "from": "pas",
+      "to": "nl",
+      "label": "consulta ambigua",
+      "variant": "dashed"
+    },
+    {
+      "id": "k2",
+      "from": "nl",
+      "to": "agent",
+      "label": "intención estructurada",
+      "variant": "dashed"
+    },
+    {
+      "id": "k3",
+      "from": "agent",
+      "to": "tools",
+      "label": "solo lectura",
+      "variant": "dashed"
+    },
+    {
+      "id": "k4",
+      "from": "tools",
+      "to": "engine",
+      "label": "consulta evaluación",
+      "variant": "dashed"
+    },
+    {
+      "id": "k5",
+      "from": "engine",
+      "to": "explain",
+      "label": "decisión fija",
+      "variant": "emphasis"
+    },
+    {
+      "id": "k6",
+      "from": "explain",
+      "to": "pas",
+      "label": "explicación",
+      "variant": "dashed"
+    },
+    {
+      "id": "k7",
+      "from": "engine",
+      "to": "human",
+      "label": "recomienda revisión",
+      "variant": "emphasis"
+    },
+    {
+      "id": "k8",
+      "from": "human",
+      "to": "write",
+      "label": "autoriza",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Hoy",
+      "items": [
+        "Todas las reglas son deterministas y están probadas",
+        "La revisión humana es una recomendación; no se ejecuta"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Propuesto",
+      "items": [
+        "La IA interpreta y explica; no inventa políticas ni horarios",
+        "El motor conserva la autoridad sobre cada decisión"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Control",
+      "items": [
+        "Acciones sensibles: autorización, idempotencia y reconciliación",
+        "No se enviarán datos personales a un modelo"
+      ]
+    }
+  ]
+}

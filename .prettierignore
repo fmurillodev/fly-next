@@ -5,3 +5,5 @@ coverage
 .atl
 *.md
 odd
+.agents
+docs/diagrams

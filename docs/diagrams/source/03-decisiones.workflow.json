@@ -1,0 +1,240 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Flujo de decisiones del motor",
+    "locale": "es",
+    "output": "03-decisiones.html",
+    "quality_profile": "showcase",
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "lanes": [
+    {
+      "id": "fuentes",
+      "label": "Evidencia"
+    },
+    {
+      "id": "eval",
+      "label": "Evaluación"
+    },
+    {
+      "id": "alt",
+      "label": "Alternativas"
+    },
+    {
+      "id": "res",
+      "label": "Resultado",
+      "variant": "exception"
+    }
+  ],
+  "mainPath": [
+    "src",
+    "fresh",
+    "recon",
+    "cal",
+    "disr",
+    "conn",
+    "pol",
+    "alt"
+  ],
+  "nodes": [
+    {
+      "id": "src",
+      "lane": "fuentes",
+      "col": 0,
+      "type": "database",
+      "label": "Fuentes sintéticas",
+      "sublabel": "viaje, eventos, políticas",
+      "width": 132
+    },
+    {
+      "id": "fresh",
+      "lane": "fuentes",
+      "col": 1,
+      "type": "security",
+      "label": "Frescura",
+      "sublabel": "5 / 30 / 15 minutos",
+      "width": 132
+    },
+    {
+      "id": "recon",
+      "lane": "fuentes",
+      "col": 2,
+      "type": "backend",
+      "label": "Reconciliación",
+      "sublabel": "autoridad por dato",
+      "width": 132
+    },
+    {
+      "id": "cal",
+      "lane": "fuentes",
+      "col": 3,
+      "type": "backend",
+      "label": "Calidad de datos",
+      "sublabel": "estado del resultado",
+      "width": 132
+    },
+    {
+      "id": "disr",
+      "lane": "eval",
+      "col": 3,
+      "type": "backend",
+      "label": "Disrupción",
+      "sublabel": "retraso o cancelación",
+      "width": 132
+    },
+    {
+      "id": "conn",
+      "lane": "eval",
+      "col": 4,
+      "type": "backend",
+      "label": "Riesgo de conexión",
+      "sublabel": "riesgo del trasbordo",
+      "width": 132
+    },
+    {
+      "id": "pol",
+      "lane": "eval",
+      "col": 5,
+      "type": "security",
+      "label": "Políticas R1–R5",
+      "sublabel": "estado por regla",
+      "width": 132
+    },
+    {
+      "id": "alt",
+      "lane": "alt",
+      "col": 5,
+      "type": "backend",
+      "label": "Alternativas",
+      "sublabel": "si hay alerta",
+      "width": 132
+    },
+    {
+      "id": "unc",
+      "lane": "res",
+      "col": 2,
+      "type": "messagebus",
+      "label": "Incertidumbre",
+      "sublabel": "sin dato ≠ sin disrupción",
+      "width": 132
+    },
+    {
+      "id": "rec",
+      "lane": "res",
+      "col": 4,
+      "type": "backend",
+      "label": "Recomendación",
+      "sublabel": "cuatro tipos posibles",
+      "width": 132
+    },
+    {
+      "id": "human",
+      "lane": "res",
+      "col": 5,
+      "type": "security",
+      "label": "Revisión humana",
+      "sublabel": "recomendada, no ejecutada",
+      "width": 132
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "from": "src",
+      "to": "fresh",
+      "label": "leer"
+    },
+    {
+      "id": "e2",
+      "from": "fresh",
+      "to": "recon",
+      "label": "datos vigentes",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e3",
+      "from": "recon",
+      "to": "cal",
+      "label": "hechos o conflicto"
+    },
+    {
+      "id": "e4",
+      "from": "cal",
+      "to": "disr",
+      "label": "hechos verificados",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e5",
+      "from": "disr",
+      "to": "conn"
+    },
+    {
+      "id": "e6",
+      "from": "conn",
+      "to": "pol",
+      "label": "margen y evidencia"
+    },
+    {
+      "id": "e7",
+      "from": "pol",
+      "to": "alt"
+    },
+    {
+      "id": "e8",
+      "from": "alt",
+      "to": "rec",
+      "label": "validadas o pendientes"
+    },
+    {
+      "id": "e9",
+      "from": "rec",
+      "to": "human",
+      "label": "conexión en riesgo, menor o evidencia incompleta",
+      "variant": "security"
+    },
+    {
+      "id": "e10",
+      "from": "cal",
+      "to": "unc",
+      "label": "faltan datos o hay contradicción",
+      "variant": "dashed"
+    },
+    {
+      "id": "e11",
+      "from": "unc",
+      "to": "rec",
+      "label": "estado parcial o indeterminado",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Incertidumbre",
+      "items": [
+        "Fuente degradada no fundamenta una decisión definitiva",
+        "Sin Minimum Connection Time inventado: margen positivo sin evidencia es UNKNOWN"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Conexión",
+      "items": [
+        "Margen 0 o negativo, o evidencia operacional: AT_RISK",
+        "MISSED solo con confirmación, nunca con una estimación"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Acciones",
+      "items": [
+        "Solo recomienda; no ejecuta ninguna acción",
+        "Una alternativa no es una reserva confirmada"
+      ]
+    }
+  ]
+}
