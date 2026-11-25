@@ -59,7 +59,11 @@ export class PassengerMessageComposer {
     }
   }
 
-  flight(event: Omit<Event, "message">, secondarySource: boolean): PassengerMessage {
+  flight(
+    event: Omit<Event, "message">,
+    secondarySource: boolean,
+    actualDeparture: Time | undefined,
+  ): PassengerMessage {
     const { flightNumber, flightStatus, delay, gate, estimatedDeparture } = event;
     const gateCopy = gate.status === "KNOWN" ? [facts.gate(gate.value)] : [];
     if (flightStatus === "CANCELLED") {
@@ -67,8 +71,11 @@ export class PassengerMessageComposer {
         ? render("FLIGHT_STATUS_UNVERIFIED", flightNumber, [facts.cancellationUnverified])
         : render("FLIGHT_CANCELLED", flightNumber);
     }
-    if (estimatedDeparture)
+    if (actualDeparture) {
+      gateCopy.unshift(facts.outbound.ACTUAL(flightNumber, localTime(actualDeparture)));
+    } else if (estimatedDeparture) {
       gateCopy.unshift(facts.estimatedDeparture(localTime(estimatedDeparture)));
+    }
     if (delay.status === "CONFIRMED")
       return render("FLIGHT_DELAYED_CONFIRMED", flightNumber, delay.minutes, gateCopy);
     if (delay.status === "UNCONFIRMED")

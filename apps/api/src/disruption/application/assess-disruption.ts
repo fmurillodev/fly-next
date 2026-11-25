@@ -70,6 +70,8 @@ export interface SegmentAssessment {
   readonly severity: Severity;
   readonly delay: DelayInfo;
   readonly estimatedDeparture?: Instant;
+  /** Present only when reconciled from a primary source. */
+  readonly actualDeparture?: Instant;
   readonly gate:
     | { readonly kind: "KNOWN"; readonly value: string }
     | { readonly kind: "UNKNOWN"; readonly reason: UnresolvedReason };
@@ -249,7 +251,10 @@ export function createAssessDisruption(deps: AssessDisruptionDeps) {
     );
 
     const segments = reconciled.map(({ segment, rec }): SegmentAssessment => {
-      const facts = rec.status.kind === "RESOLVED" ? rec.status.value : undefined;
+      const status = rec.status.kind === "RESOLVED" ? rec.status : undefined;
+      const facts = status?.value;
+      const actualDeparture =
+        status?.basis === "PRIMARY_SOURCE" ? facts?.actualDeparture : undefined;
       const severity = classifySegment(rec.status, compromised.has(segment.id), config);
       trace.push({ step: "CLASSIFICATION", refs: [segment.id], decision: severity });
       return {
@@ -265,6 +270,7 @@ export function createAssessDisruption(deps: AssessDisruptionDeps) {
         ...(facts?.estimatedDeparture === undefined
           ? {}
           : { estimatedDeparture: facts.estimatedDeparture }),
+        ...(actualDeparture === undefined ? {} : { actualDeparture }),
         gate:
           rec.gate.kind === "RESOLVED"
             ? { kind: "KNOWN", value: rec.gate.value }

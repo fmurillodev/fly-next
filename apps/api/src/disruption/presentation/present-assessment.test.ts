@@ -91,7 +91,12 @@ describe("public assessment examples", () => {
             estimatedDeparture: time("2026-09-15T17:10:00-03:00", santiago, "2026-09-15T20:10:00Z"),
             delay: { status: "CONFIRMED", minutes: 160 },
             gate: { status: "KNOWN", value: "24" },
-            message: { code: "FLIGHT_DELAYED_CONFIRMED" },
+            message: {
+              code: "FLIGHT_DELAYED_CONFIRMED",
+              title: "Tu vuelo LA500 está retrasado",
+              message:
+                "El retraso confirmado para el vuelo LA500 es de 160 minutos. Su hora estimada de salida es 17:10 (hora de Santiago). Puerta de embarque: 24.",
+            },
           },
           {
             segmentId: "S2",
@@ -376,6 +381,46 @@ describe("connection timing evidence", () => {
     expect(dto.connection?.message.message).toMatch(/salida confirmada[^.]*04:45/i);
     expect(ruleStatuses(dto)[2]).toBe("APPLICABLE");
     expect(dto.actions.executed).toEqual([]);
+  });
+});
+
+describe("flight departure copy", () => {
+  it.each([
+    [
+      "confirmed actual",
+      "OPS_CORE",
+      "2026-09-15T04:45:00-05:00",
+      "FLIGHT_DELAYED_CONFIRMED",
+      "El retraso confirmado para el vuelo LA2506 es de 5 minutos. La salida confirmada del vuelo LA2506 fue a las 04:45 (hora de Lima).",
+    ],
+    [
+      "secondary-source actual",
+      "LEGACY_MIRROR",
+      "2026-09-15T04:45:00-05:00",
+      "FLIGHT_DELAYED_UNCONFIRMED",
+      "Se informó un retraso de 5 minutos para el vuelo LA2506, pero todavía no está verificado. Su hora estimada de salida es 04:42 (hora de Lima).",
+    ],
+    [
+      "actual later than its report",
+      "OPS_CORE",
+      "2026-09-15T05:55:00-05:00",
+      "FLIGHT_DELAYED_CONFIRMED",
+      "El retraso confirmado para el vuelo LA2506 es de 5 minutos. Su hora estimada de salida es 04:42 (hora de Lima).",
+    ],
+  ] as const)("handles %s when an older estimate exists", async (_, source, local, code, copy) => {
+    const scenario = fixture("DEMO06");
+    const [, outbound] = scenario.events.events;
+    if (outbound?.type !== "STATUS") throw new Error("Missing fixture status");
+    outbound.source = source;
+    outbound.actualDeparture = { local, timeZone: lima };
+    outbound.estimatedDeparture = { local: "2026-09-15T04:42:00-05:00", timeZone: lima };
+    const dto = present(await assess("DEMO06", scenario));
+    const flight = dto.disruption.events[1];
+    expect(flight).toMatchObject({
+      estimatedDeparture: time("2026-09-15T04:42:00-05:00", lima, "2026-09-15T09:42:00Z"),
+      message: { code, message: copy },
+    });
+    expect(flight).not.toHaveProperty("actualDeparture");
   });
 });
 

@@ -105,7 +105,11 @@ function presentEvent(
       : { estimatedDeparture: zonedTime(segment.estimatedDeparture, origin.timeZone) }),
     gate,
   };
-  return { ...facts, message: composer.flight(facts, secondarySource) };
+  const actualDeparture =
+    segment.actualDeparture === undefined
+      ? undefined
+      : zonedTime(segment.actualDeparture, origin.timeZone);
+  return { ...facts, message: composer.flight(facts, secondarySource, actualDeparture) };
 }
 
 function presentConnection(
