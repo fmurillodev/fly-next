@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { instantFromIso, minutesBetween, offsetFromIso, utcOffsetMinutes } from "./time.js";
+import {
+  instantFromIso,
+  isWithinMinutes,
+  isWithinSeconds,
+  minutesBetween,
+  offsetFromIso,
+  utcOffsetMinutes,
+} from "./time.js";
 
 describe("instantFromIso", () => {
   it("normalizes explicit offsets to the same UTC instant", () => {
@@ -41,5 +48,20 @@ describe("offsetFromIso / minutesBetween", () => {
     const arrival = instantFromIso("2026-09-15T17:55:00-05:00");
     const departure = instantFromIso("2026-09-15T19:05:00-05:00");
     expect(minutesBetween(arrival, departure)).toBe(70);
+  });
+});
+
+describe("freshness predicates", () => {
+  const now = instantFromIso("2026-09-15T11:02:40Z");
+  it("is inclusive at the window and rejects older data", () => {
+    expect(isWithinMinutes(now - 5 * 60_000, now, 5)).toBe(true);
+    expect(isWithinMinutes(now - 5 * 60_000 - 1, now, 5)).toBe(false);
+    expect(isWithinSeconds(now - 120_000, now, 120)).toBe(true);
+  });
+
+  it("never treats a timestamp in the future as fresh (clock skew or bad provider)", () => {
+    expect(isWithinMinutes(now + 1, now, 5)).toBe(false);
+    expect(isWithinSeconds(now + 1, now, 120)).toBe(false);
+    expect(isWithinMinutes(now, now, 5)).toBe(true);
   });
 });

@@ -40,14 +40,14 @@ export const addMinutes = (instant: Instant, minutes: number): Instant =>
   instant + minutes * 60_000;
 export const ageMs = (recordedAt: Instant, now: Instant): number => now - recordedAt;
 
-/** A window is inclusive: data whose age equals the window is still fresh. */
+/** A window is inclusive (age equal to the window is fresh); a timestamp in the future is never fresh. */
 export const isWithinMinutes = (
   recordedAt: Instant,
   now: Instant,
   windowMinutes: number,
-): boolean => ageMs(recordedAt, now) <= windowMinutes * 60_000;
+): boolean => ageMs(recordedAt, now) >= 0 && ageMs(recordedAt, now) <= windowMinutes * 60_000;
 export const isWithinSeconds = (
   recordedAt: Instant,
   now: Instant,
   windowSeconds: number,
-): boolean => ageMs(recordedAt, now) <= windowSeconds * 1000;
+): boolean => ageMs(recordedAt, now) >= 0 && ageMs(recordedAt, now) <= windowSeconds * 1000;

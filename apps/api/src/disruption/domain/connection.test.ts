@@ -39,8 +39,35 @@ describe("evaluateConnection (D04)", () => {
     });
   });
 
-  it("keeps a reduced margin AT_RISK because no Minimum Connection Time is invented", () => {
-    expect(evaluate(resolved({ status: "DELAYED", delayMinutes: 5 }), onSchedule).status).toBe(
+  it("does not call a reduced but still positive margin AT_RISK without evidence: it stays UNKNOWN (P5)", () => {
+    const result = evaluate(resolved({ status: "DELAYED", delayMinutes: 5 }), onSchedule);
+    expect(result).toMatchObject({
+      status: "UNKNOWN",
+      lossConfirmation: "NOT_CONFIRMED",
+      marginMinutes: 65,
+    });
+  });
+
+  it.each([
+    [69, 1, "UNKNOWN"],
+    [70, 0, "AT_RISK"],
+    [71, -1, "AT_RISK"],
+  ] as const)(
+    "projected margin boundary: %d-minute delay leaves %d min → %s",
+    (delay, margin, expected) => {
+      const result = evaluate(resolved({ status: "DELAYED", delayMinutes: delay }), onSchedule);
+      expect(result).toMatchObject({ status: expected, marginMinutes: margin });
+    },
+  );
+
+  it("treats an unconfirmed cancellation report as operational evidence of risk, not as a missed connection", () => {
+    expect(
+      evaluate(resolved({ status: "CANCELLED" }, "SECONDARY_SOURCE"), onSchedule),
+    ).toMatchObject({
+      status: "AT_RISK",
+      lossConfirmation: "NOT_CONFIRMED",
+    });
+    expect(evaluate(onSchedule, resolved({ status: "CANCELLED" }, "SECONDARY_SOURCE")).status).toBe(
       "AT_RISK",
     );
   });
@@ -84,7 +111,7 @@ describe("evaluateConnection (D04)", () => {
     expect(boundary.status).toBe("MISSED");
   });
 
-  it("confirms not missed when the flight arrived before departure but the margin shrank", () => {
+  it("a confirmed arrival with a positive but reduced margin is not enough to call it safe or at risk", () => {
     const result = evaluate(
       resolved({
         status: "DELAYED",
@@ -94,9 +121,21 @@ describe("evaluateConnection (D04)", () => {
       onSchedule,
     );
     expect(result).toMatchObject({
-      status: "AT_RISK",
-      lossConfirmation: "CONFIRMED_NOT_MISSED",
+      status: "UNKNOWN",
+      lossConfirmation: "NOT_CONFIRMED",
       marginMinutes: 10,
+    });
+  });
+
+  it("confirms not missed (SAFE) when the confirmed arrival preserves the booked margin", () => {
+    const result = evaluate(
+      resolved({ status: "ON_TIME", actualArrival: t("2026-09-15T17:50:00-05:00") }),
+      onSchedule,
+    );
+    expect(result).toMatchObject({
+      status: "SAFE",
+      lossConfirmation: "CONFIRMED_NOT_MISSED",
+      marginMinutes: 75,
     });
   });
 
@@ -105,11 +144,5 @@ describe("evaluateConnection (D04)", () => {
       status: "MISSED",
       lossConfirmation: "CONFIRMED_MISSED",
     });
-  });
-
-  it("does not confirm a cancellation reported only by a secondary source", () => {
-    expect(evaluate(resolved({ status: "CANCELLED" }, "SECONDARY_SOURCE"), onSchedule).status).toBe(
-      "UNKNOWN",
-    );
   });
 });

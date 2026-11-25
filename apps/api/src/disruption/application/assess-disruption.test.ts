@@ -8,6 +8,7 @@ import type {
 } from "../domain/ports.js";
 import { t } from "../domain/testing.js";
 import { createSimulationClock, SIMULATION_REFERENCE } from "../infrastructure/clock.js";
+import { SCENARIOS } from "../infrastructure/fixtures.js";
 import { createMockProviders } from "../infrastructure/mock-providers.js";
 import {
   createAssessDisruption,
@@ -290,7 +291,33 @@ describe("controlled degradation (D10, A06)", () => {
   });
 });
 
+describe("connection without evidence of risk (P5)", () => {
+  it("a small delay that leaves a positive margin is UNKNOWN, partial and only monitored, never human review", async () => {
+    const scenario = structuredClone(SCENARIOS["ABC123"]!);
+    const delayed = scenario.events.events.find((e) => e.eventId === "E1");
+    if (delayed?.type !== "STATUS") throw new Error("fixture E1 expected");
+    delayed.delayMinutes = 20;
+    delete delayed.estimatedDeparture;
+    const a = await assess("ABC123", createMockProviders({ ABC123: scenario }));
+    expect(a.connection).toMatchObject({ status: "UNKNOWN", marginMinutes: 50 });
+    expect(a).toMatchObject({
+      severity: "INFO",
+      assessmentStatus: "PARTIAL",
+      recommendation: { type: "MONITOR_FLIGHT" },
+    });
+  });
+});
+
 describe("freshness and simulation (D03)", () => {
+  it("rejects a booking context stamped in the future", async () => {
+    const scenario = structuredClone(SCENARIOS["ABC123"]!);
+    scenario.booking.retrievedAt = "2026-09-15T11:02:41Z";
+    expect(await build(createMockProviders({ ABC123: scenario }))("ABC123")).toEqual({
+      ok: false,
+      error: { code: "STALE_BOOKING_CONTEXT" },
+    });
+  });
+
   it("rejects a booking context older than 5 minutes (boundary: 5:00 is fresh, 5:00.001 is stale)", async () => {
     const at = (offsetMs: number) =>
       createSimulationClock(
