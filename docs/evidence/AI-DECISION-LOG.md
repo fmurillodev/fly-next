@@ -13,6 +13,9 @@ Records real AI-assisted decisions only. Human decisions are authoritative.
 | 7 | 2026-11-25 | PR-01 review routing | Native assess reported `reviewDue: high_risk` (CI workflow file) for the committed range; AI did not start RDD because consent is the maintainer's | Maintainer consented; host resolved consent and the native review (risk + reliability lenses) approved the PR-01 range with four non-blocking findings | Findings handled at G1 (see rows 8) |
 | 8 | 2026-11-25 | PR-01 review findings | Reviewers reported: exact `engines.node` is brittle; empty `PORT` coerces to 0; table row split in this log; Vite `/api` proxy reaches nothing yet | Maintainer approved fixing 1–3 in an extra local commit and deferring the proxy to PR-04 and web tests to PR-05 | Fixed with tests (`PORT` also rejected `1e3` once the strict test existed; `engine-strict`/`save-exact` moved from `.npmrc`, which pnpm 12 ignored, to `pnpm-workspace.yaml`); deferrals tracked in ODD |
 | 9 | 2026-11-25 | Future-phase decisions | — (human-originated) | Maintainer added Observability by Design (PR-04, `OBSERVABILITY.md`) and the GoogleChrome modern-web-guidance skill evaluation (PR-05) | Recorded in ODD, not implemented |
+| 10 | 2026-11-25 | Publication | AI audited history/tracked files and proposed publishing | Maintainer authorized a public repo, push and PR #1 | Published; CI green on `87f9624` |
+| 11 | 2026-11-25 | Railway config mechanism | AI first added `railway.json`; after the CLI deprecation warning and docs check it removed the file and configured the service directly | Within the authorized scope (no extra dependency for IaC) | Recorded in ARCHITECTURE.md |
+| 12 | 2026-11-25 | Deployment | AI deployed commit `e7ffb2d` with `railway up` and verified `/health` | Maintainer authorized one project/service and the initial deploy | Public foundation deployed; merges and G2 pending maintainer |
 
 ## Rules applied
 

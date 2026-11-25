@@ -42,6 +42,25 @@ Route → Zod validation → `AssessDisruption` use case → providers (mock ada
 
 One Railway service, one Node.js process. Routes: `GET /` (static React via `@fastify/static`, when built), `GET /health`, `GET /docs`, `POST /api/v1/disruptions/assessment`. SPA fallback excludes `/api`, `/docs`, `/health`. Listens on `0.0.0.0:$PORT`. Stateless; no database. Dev: Vite proxy to the API. Web and API keep independent builds. Early deploy in PR-02.
 
+### Railway runbook (PR-02, foundation only)
+
+Project `FlyNext`, one service `flynext-api`, environment `production`, no databases or volumes. Public URL: <https://flynext-api-production.up.railway.app> (HTTPS; HTTP redirects with 301). Today it serves only `GET /health`; there is **no assessment endpoint yet**.
+
+| Setting | Value |
+| --- | --- |
+| Builder / root | Railpack, repository root |
+| Build command | `node --version && pnpm --version && pnpm build` (prints versions in the build log) |
+| Start command | `pnpm start` (runs the API only; static web integration is PR-05) |
+| Health check | `/health`, 60 s timeout; restart on failure, max 3 retries |
+| Variables | `NODE_ENV=production`, `HOST=0.0.0.0`, `RAILPACK_NODE_VERSION=24.15.0`; `PORT` is injected by Railway. No secrets |
+| Install | `pnpm install --frozen-lockfile` (Railpack), `engineStrict` in `pnpm-workspace.yaml` |
+
+Why settings live on the service and not in the repo: new Railway services cannot use `railway.json` (deprecated, ignored from 2026-12-01), and Infrastructure as Code (`.railway/railway.ts`) would add the `railway` npm package as a dependency, which is out of scope.
+
+**Deploy / redeploy:** from a clean checkout of the approved commit, `railway up --ci -s flynext-api -m "<sha> <note>"` (uploads the working tree; no GitHub auto-deploy is connected). Redeploy the current image: `railway redeploy -s flynext-api`.
+**Rollback:** `railway deployment list -s flynext-api`, then roll back to the previous successful deployment from the dashboard (Hobby retains images 72 h) or re-run `railway up` from the previous commit.
+**Limitations:** no auth, no rate limiting, no assessment, no static web, deploys are manual and the GitHub repository is not connected to Railway.
+
 ## Cross-cutting
 
 - **HTTP client:** central Axios `RestClient` only once there is a real HTTP responsibility (timeout, correlation ID, interceptors, error normalization, latency, bounded read-only retries). Mock adapters run locally and do not fake HTTP.

@@ -71,6 +71,16 @@ Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm
 - **Finding while verifying `engine-strict`:** pnpm 12 ignored `engine-strict` and `save-exact` in `.npmrc` (`pnpm config get` returned `undefined`, and `pnpm install` under Node 26.1.0 succeeded). Both settings moved to `pnpm-workspace.yaml` (`engineStrict: true`, `saveExact: true`) and `.npmrc` was removed. Verified: `pnpm install --frozen-lockfile` under Node 26.1.0 now fails with `ERR_PNPM_UNSUPPORTED_ENGINE` (wanted `^24.15.0`); under Node 24.15.0 it passes.
 - `PORT` validation is now strict decimal digits in 1–65535 (default 3000 only when unset). Test-first: 4 new cases failed before the fix (empty, whitespace, zero, `1e3`), all pass after.
 
+## PR-02 (Railway early deployment) — observed 2026-11-25
+
+- **GitHub:** public repo `fmurillodev/fly-next` created with `gh`; `main` (PR-00) and `feat/monorepo-foundation` pushed; PR #1 opened. History and tracked files audited before publishing: no secrets, PDFs, private harness artifacts or personal paths; the only personal datum is the maintainer-approved author email. **GitHub Actions run 45665610724 on SHA `87f96244b2844e9298f09cfe9230076ca1a738f0` concluded `success`** (`pnpm install --frozen-lockfile`, `pnpm check`). `main` has no workflow, so pushing it ran no CI.
+- **Railway account:** Railway CLI 5.71.0; workspace `fmurillodev's Projects` (team); plan `HOBBY`, customer `ACTIVE` (read through `railway api`). Plan facts from Railway docs: $5/month subscription including $5 of usage; builds are free; RAM $10/GB/month, CPU $20/vCPU/month, egress $0.05/GB. No plan change, payment method or add-on was needed. Actual cost of this service was not measured; it shares the workspace's included usage with 4 other projects.
+- **Config-as-code finding:** the CLI warned that `railway.json` is deprecated; docs state new services cannot use it and existing files stop being read on 2026-12-01. A `railway.json` was written, committed locally, then removed before publishing; build/start/health settings were applied on the service through the Railway MCP `update_service` tool.
+- **Deployed commit:** `e7ffb2df7202ff1d7d12c133552228fa9e4daafa` (`feat/railway-deployment`), uploaded from a clean working tree with `railway up`; deployment `8e462997-e14d-4331-b903-68fee81a258b` → `SUCCESS`.
+- **Effective versions (build log):** node 24.15.0 and pnpm 12.16.1 (resolved through idiomatic version files while `RAILPACK_NODE_VERSION=24.15.0` was also set; the build log does not say which source won); `pnpm install --frozen-lockfile --prefer-offline`; build log warning: "could not detect pnpm lockfile version" (install still succeeded). **Runtime (startup log):** `node="v24.15.0" env="production"`, listening on port 8080 injected by Railway.
+- **Smoke test (curl, public HTTPS):** `GET /health` → `HTTP/2 200 {"status":"ok"}`; unknown route → 404 JSON without stack trace; `http://` → 301 to `https://`. Railway's health check request (`healthcheck.railway.app`) returned 200 in the deploy log and the deployment became `SUCCESS`.
+- **Not verified:** a pushed-branch CI run for the PR-02 branch; the exact cost incurred.
+
 ## Pending evaluations
 
 - PR-01: trusted modern-TypeScript skill (provenance, license, version, content, compatibility).
