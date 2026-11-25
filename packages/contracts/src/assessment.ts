@@ -15,13 +15,49 @@ export const PassengerMessageSchema = z.strictObject({
   nextSteps: z.array(z.string()).optional(),
 });
 
+function namedZoneFormatter(timeZone: string) {
+  // Intl also accepts numeric offset identifiers, which are not IANA zone names.
+  if (/^[+-]/.test(timeZone)) return undefined;
+  try {
+    return new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: "longOffset" });
+  } catch {
+    return undefined;
+  }
+}
+
+function fractionalSecond(timestamp: string): string {
+  // Date.parse drops sub-millisecond precision; trailing zeros do not change the instant.
+  return (/\.(\d+)/.exec(timestamp)?.[1] ?? "").replace(/0+$/, "");
+}
+
 const utc = z.iso.datetime();
-const time = z.strictObject({
-  local: z.iso.datetime({ offset: true }),
-  timeZone: z.string(),
-  utc,
+const time = z
+  .strictObject({ local: z.iso.datetime({ offset: true }), timeZone: z.string(), utc })
+  .refine(({ local, timeZone, utc }) => {
+    const instant = Date.parse(utc);
+    if (Date.parse(local) !== instant || fractionalSecond(local) !== fractionalSecond(utc)) {
+      return false;
+    }
+
+    const formatter = namedZoneFormatter(timeZone);
+    if (!formatter) return false;
+    try {
+      const zoneOffset = formatter
+        .formatToParts(instant)
+        .find((part) => part.type === "timeZoneName")?.value;
+      const localOffset = local.slice(-6);
+      const isZero = local.endsWith("Z") || localOffset === "+00:00" || localOffset === "-00:00";
+      return zoneOffset === (isZero ? "GMT" : `GMT${localOffset}`);
+    } catch {
+      return false;
+    }
+  }, "Local and UTC timestamps must match the same instant and IANA time zone offset");
+const airport = z.strictObject({
+  code: z.string(),
+  timeZone: z
+    .string()
+    .refine((zone) => namedZoneFormatter(zone) !== undefined, "Invalid IANA time zone"),
 });
-const airport = z.strictObject({ code: z.string(), timeZone: z.string() });
 const severity = z.enum(["NONE", "INFO", "WARNING", "CRITICAL", "UNKNOWN"]);
 const unknownReason = z.enum(["STALE", "UNAVAILABLE", "UNVERIFIED"]);
 

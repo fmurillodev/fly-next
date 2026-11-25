@@ -125,6 +125,65 @@ describe("assessment response", () => {
     expect(AssessmentResponseSchema.parse(degraded)).toEqual(degraded);
   });
 
+  function withScheduledDeparture(
+    replacement: Partial<AssessmentResponse["disruption"]["events"][number]["scheduledDeparture"]>,
+  ): AssessmentResponse {
+    const body = abc123();
+    const events = body.disruption.events.map((event, index) =>
+      index === 0
+        ? { ...event, scheduledDeparture: { ...event.scheduledDeparture, ...replacement } }
+        : event,
+    );
+    return { ...body, disruption: { ...body.disruption, events } };
+  }
+
+  it.each([
+    ["unrecognized IANA zone", { timeZone: "America/Unknown" }],
+    ["numeric zone identifier", { timeZone: "-03:00" }],
+    ["different instant", { utc: "2026-09-15T17:31:00Z" }],
+    [
+      "matching instant with the wrong seasonal offset",
+      { local: "2026-07-15T14:30:00-03:00", utc: "2026-07-15T17:30:00Z" },
+    ],
+    [
+      "different sub-millisecond instant",
+      { local: "2026-09-15T14:30:00.1234-03:00", utc: "2026-09-15T17:30:00.1235Z" },
+    ],
+  ])("rejects scheduled departure with %s", (_reason, replacement) => {
+    expect(AssessmentResponseSchema.safeParse(withScheduledDeparture(replacement)).success).toBe(
+      false,
+    );
+  });
+
+  it.each([
+    [
+      "seasonal offset",
+      {
+        local: "2026-07-15T14:30:00-04:00",
+        utc: "2026-07-15T18:30:00Z",
+      },
+    ],
+    [
+      "equivalent fractional precision",
+      {
+        local: "2026-09-15T14:30:00.12340-03:00",
+        utc: "2026-09-15T17:30:00.1234Z",
+      },
+    ],
+  ])("preserves scheduled departure with %s", (_reason, replacement) => {
+    const body = withScheduledDeparture(replacement);
+    expect(AssessmentResponseSchema.parse(body)).toEqual(body);
+  });
+
+  it("rejects an unrecognized airport time zone", () => {
+    const body = abc123();
+    body.disruption.events = body.disruption.events.map((event) => ({
+      ...event,
+      origin: { ...event.origin, timeZone: "America/Unknown" },
+    }));
+    expect(AssessmentResponseSchema.safeParse(body).success).toBe(false);
+  });
+
   it("requires a timezone on local timestamps and a Z suffix on UTC timestamps", () => {
     const body = abc123();
     for (const replacement of [
