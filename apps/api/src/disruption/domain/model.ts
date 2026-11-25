@@ -128,3 +128,6 @@ export interface TraceEntry {
   readonly decision: string;
   readonly reasonCode?: string;
 }
+
+/** Why a read provider produced no usable data. Programming errors are never mapped here. */
+export type ProviderFailure = "NOT_FOUND" | "UNAVAILABLE" | "TIMEOUT" | "INVALID_RESPONSE";
