@@ -1,0 +1,35 @@
+{
+  "name": "flynext",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "FlyNext monorepo (independent demo; not an official LATAM product)",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": "^24.15.0",
+    "pnpm": "12.16.1"
+  },
+  "scripts": {
+    "dev": "pnpm build:contracts && pnpm --parallel --filter @flynext/api --filter @flynext/web dev",
+    "dev:api": "pnpm build:contracts && pnpm --filter @flynext/api dev",
+    "dev:web": "pnpm --filter @flynext/web dev",
+    "build": "pnpm -r build",
+    "build:contracts": "pnpm --filter @flynext/contracts build",
+    "build:api": "pnpm --filter @flynext/api... build",
+    "build:web": "pnpm --filter @flynext/web... build",
+    "start": "pnpm start:api",
+    "start:api": "pnpm --filter @flynext/api start",
+    "test": "pnpm build:contracts && pnpm -r test",
+    "lint": "eslint . && prettier --check .",
+    "typecheck": "pnpm build:contracts && pnpm -r typecheck",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
+  }
+}

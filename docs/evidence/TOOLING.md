@@ -33,7 +33,45 @@ None in PR-00.
 
 G0 closure: `git config --local user.name/user.email` (local identity only; global config untouched); Node `Intl.DateTimeFormat` check of IANA offsets for 2026-09-15/16 (Santiago -03:00, Lima -05:00, Mexico City -06:00); `git diff --cached --check`; staged-content scan for secrets and personal paths (results in the closure report).
 
+## PR-01 (Monorepo Foundation) — observed 2026-11-25
+
+Commands ran under Node v24.15.0 (via `nvm use`; Gentle Shell's own Node untouched) and pnpm 12.16.1.
+
+| Area | Pinned (exact) |
+| --- | --- |
+| Runtime | Node 24.15.0 (`.nvmrc`, `engines`), pnpm 12.16.1 (`packageManager`) |
+| Language/test | typescript 6.0.3, vitest 5.1.2, zod 4.6.7, @types/node 24.19.4 |
+| API | fastify 5.12.8 (Pino built in), tsup 9.0.0, tsx 4.23.15 |
+| Web | react / react-dom 19.3.1, vite 8.3.8, @vitejs/plugin-react 6.3.0, tailwindcss + @tailwindcss/vite 4.3.5, @types/react 19.3.3, @types/react-dom 19.3.0 |
+| Lint/format | eslint 10.15.0, @eslint/js 10.0.1, typescript-eslint 8.74.0, globals 17.14.0, prettier 3.10.1 |
+| CI | actions/checkout v7, pnpm/action-setup v6, actions/setup-node v7 (latest majors read via `gh api`) |
+
+Versions are shared through a pnpm catalog (`pnpm-workspace.yaml`) with `save-exact=true`.
+
+Decisions and findings:
+
+- **TypeScript 6.0.3, not 7.0.2 (npm `latest`):** typescript-eslint 8.74.0 declares `typescript >=4.8.4 <6.1.0`. Latest 6.x keeps the lint toolchain supported.
+- **@types/node 24.x** matches the Node 24 runtime (the `latest` tag is 26).
+- **pnpm supply-chain gate:** pnpm automatically added `minimumReleaseAgeExclude` entries (vitest 5.1.2 and related packages, @types/node 24.19.4, @types/react 19.3.3) because those releases were newer than the default minimum release age. They are pinned exactly and locked.
+- **esbuild install script denied** (`allowBuilds: esbuild: false`): its platform binary comes from optional dependencies; build and tests ran without the script.
+- **Pino:** used through Fastify's native `logger` option; `base: null` removes pid/hostname from log lines (first smoke run printed the machine's LAN IP as hostname).
+- **tsup** builds the API; contracts uses plain `tsc` (types + ESM). The contracts package must be built before API/web consumers resolve it, so root `test` and `typecheck` run `build:contracts` first.
+- **Prettier ignores Markdown and `odd/`** so approved documents are not reformatted by tooling.
+- `@flynext/web` does not yet depend on `@flynext/contracts`; the dependency will be added when it is used (PR-05).
+- **`pnpm start` is provisional:** it starts only the API (`start:api`); no static frontend is served until PR-04/05 integrate `@fastify/static`.
+- Context7 consulted: Tailwind CSS v4 Vite plugin, typescript-eslint flat config, Fastify listen/logger/close.
+- **TypeScript skill evaluation:** the effective registry (14 skills) contains no TypeScript-specific skill; continued with Context7 and official docs. Nothing installed.
+
+Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm lint`, `typecheck`, `test` (contracts 2 tests, api 5 tests), `build:api`, `build:web`, `build`, `check` exit 0; `git diff --check` clean; same `pnpm check` exit 0 in a clean local clone of the commit. Build independence from a state without any `dist/`: `build:web` produced only `apps/web/dist`; `build:api` produced `packages/contracts/dist` + `apps/api/dist` and no web output. HTTP smoke: `PORT=3456 pnpm start:api` → `GET /health` = `200 {"status":"ok"}`, unknown route 404, listener bound on all interfaces (`*:3456`), SIGTERM logged "shutting down" and released the port. **GitHub Actions has not run** (no remote exists); `ci.yml` is configured only.
+
+## PR-01 review fixes (G1) — observed 2026-11-25
+
+- Native review (risk + reliability lenses) approved; four non-blocking findings; the maintainer approved fixing three.
+- `engines.node` is now `^24.15.0`; `.nvmrc` stays `24.15.0`; `engine-strict=true` kept. Railpack docs state Node is resolved from `RAILPACK_NODE_VERSION`, then `devEngines.runtime`, then `.nvmrc`/`engines.node`; a public forum report shows a deploy silently falling back to Node 18 despite `engines.node`. **Railway compatibility is therefore documented but unverified until PR-02**, which must check the Node version actually used by the build.
+- **Finding while verifying `engine-strict`:** pnpm 12 ignored `engine-strict` and `save-exact` in `.npmrc` (`pnpm config get` returned `undefined`, and `pnpm install` under Node 26.1.0 succeeded). Both settings moved to `pnpm-workspace.yaml` (`engineStrict: true`, `saveExact: true`) and `.npmrc` was removed. Verified: `pnpm install --frozen-lockfile` under Node 26.1.0 now fails with `ERR_PNPM_UNSUPPORTED_ENGINE` (wanted `^24.15.0`); under Node 24.15.0 it passes.
+- `PORT` validation is now strict decimal digits in 1–65535 (default 3000 only when unset). Test-first: 4 new cases failed before the fix (empty, whitespace, zero, `1e3`), all pass after.
+
 ## Pending evaluations
 
 - PR-01: trusted modern-TypeScript skill (provenance, license, version, content, compatibility).
-- PR-05: frontend-design, web-design-guidelines, vercel-react-best-practices, Tailwind CSS v4 skill, Playwright MCP.
+- PR-05: GoogleChrome modern-web-guidance (not installed; provenance/version/privacy/registry checks first), frontend-design, web-design-guidelines, vercel-react-best-practices, Tailwind CSS v4 skill, Playwright MCP.
