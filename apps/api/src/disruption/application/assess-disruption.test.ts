@@ -288,6 +288,72 @@ describe("scenario matrix (S23, A08)", () => {
   });
 });
 
+describe("nullable actual times at the operational events provider (R4-002)", () => {
+  it("treats both nulls as omitted without dropping any other snapshot facts", async () => {
+    const scenario = structuredClone(SCENARIOS["ABC123"]!);
+    const [delayed] = scenario.events.events;
+    Object.assign(delayed!, { actualDeparture: null, actualArrival: null });
+    const withNulls = createMockProviders({ ABC123: scenario });
+    const ids = ["S1", "S2"];
+    const baseline = await providers.events.getOperationalEvents(ids);
+    expect(baseline.ok).toBe(true);
+    expect(await withNulls.events.getOperationalEvents(ids)).toStrictEqual(baseline);
+    expect(await assess("ABC123", withNulls)).toStrictEqual(await assess("ABC123"));
+  });
+
+  it.each([
+    ["actualArrival", 0, false, -30],
+    ["actualDeparture", 1, true, -25],
+  ] as const)("keeps the other actual when %s is null", async (field, index, confirmed, margin) => {
+    const scenario = structuredClone(SCENARIOS["DEMO06"]!);
+    const [, outbound] = scenario.events.events;
+    if (outbound?.type !== "STATUS" || !outbound.actualDeparture)
+      throw new Error("fixture actual departure expected");
+    outbound.actualDeparture.local = "2026-09-15T04:40:00-05:00";
+    Object.assign(scenario.events.events[index]!, { [field]: null });
+    const a = await assess("DEMO06", createMockProviders({ DEMO06: scenario }));
+    expect(a.segments.map((s) => s.delay)).toEqual([
+      { kind: "CONFIRMED", minutes: 100 },
+      { kind: "CONFIRMED", minutes: 5 },
+    ]);
+    expect(a.connection).toMatchObject({
+      status: "AT_RISK",
+      lossConfirmation: "NOT_CONFIRMED",
+      inboundArrival: { at: t("2026-09-15T05:10:00-05:00"), confirmed },
+      marginMinutes: margin,
+    });
+    expect(ruleStatuses(a)).toMatchObject({ R3: "INSUFFICIENT_EVIDENCE" });
+  });
+
+  describe.each(["actualArrival", "actualDeparture"] as const)("malformed %s", (field) => {
+    it.each([
+      ["wrong shape", false],
+      ["missing explicit offset", { local: "2026-09-15T05:10:00", timeZone: "America/Lima" }],
+      [
+        "offset mismatching the zone",
+        { local: "2026-09-15T05:10:00-04:00", timeZone: "America/Lima" },
+      ],
+    ])("rejects %s and degrades the assessment", async (_, value) => {
+      const scenario = structuredClone(SCENARIOS["ABC123"]!);
+      const [delayed] = scenario.events.events;
+      Object.assign(delayed!, { [field]: value });
+      const malformed = createMockProviders({ ABC123: scenario });
+      expect(await malformed.events.getOperationalEvents(["S1", "S2"])).toEqual({
+        ok: false,
+        failure: "INVALID_RESPONSE",
+      });
+      const a = await assess("ABC123", malformed);
+      expect(a).toMatchObject({
+        assessmentStatus: "INDETERMINATE",
+        severity: "UNKNOWN",
+        connection: { status: "UNKNOWN", lossConfirmation: "NOT_CONFIRMED" },
+        recommendation: { type: "HUMAN_REVIEW" },
+      });
+      expect(a.warnings).toContain("OPERATIONAL_DATA_UNAVAILABLE");
+    });
+  });
+});
+
 describe("controlled degradation (D10, A06)", () => {
   it.each([
     ["NOT_FOUND", "BOOKING_NOT_FOUND"],
