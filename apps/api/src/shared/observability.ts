@@ -67,3 +67,21 @@ export function logAssessment(log: FastifyBaseLogger, assessment: AssessmentResp
     log.info({ category: "DATA", event: "assessment.data_quality", warning: code });
   }
 }
+
+export type StartupStage = "CONFIG" | "INIT" | "LISTEN";
+const listenReasons = ["EADDRINUSE", "EACCES", "EADDRNOTAVAIL"];
+
+/** Allowlisted startup failure record: never includes the error, its message, env or addresses. */
+export function startupFailureRecord(stage: StartupStage, error: unknown) {
+  const code =
+    typeof error === "object" && error !== null && "code" in error ? error.code : undefined;
+  const reasonCode =
+    stage === "CONFIG"
+      ? "INVALID_CONFIGURATION"
+      : stage === "INIT"
+        ? "UNEXPECTED_INITIALIZATION_FAILURE"
+        : typeof code === "string" && listenReasons.includes(code)
+          ? code
+          : "UNEXPECTED_LISTEN_FAILURE";
+  return { category: "ERROR", event: "service.startup_failed", stage, reasonCode } as const;
+}

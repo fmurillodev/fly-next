@@ -11,6 +11,7 @@ import { createSimulationClock } from "./disruption/infrastructure/clock.js";
 import { SCENARIOS } from "./disruption/infrastructure/fixtures.js";
 import { createMockProviders } from "./disruption/infrastructure/mock-providers.js";
 import * as presenter from "./disruption/presentation/present-assessment.js";
+import { startupFailureRecord } from "./shared/observability.js";
 
 const endpoint = "/api/v1/disruptions/assessment";
 const instances: ReturnType<typeof buildApp>[] = [];
@@ -385,6 +386,60 @@ describe("POST /api/v1/disruptions/assessment", () => {
     expect(`${response.body}${lines.join("")}`).not.toContain(marker);
   });
 
+  it("accepts ICAO flight designators for the booking and alternatives", async () => {
+    const fixture = SCENARIOS.ABC123!;
+    const booking = {
+      ...fixture.booking,
+      segments: fixture.booking.segments.map((s) => ({ ...s, flightNumber: "LAN500" })),
+    };
+    const options = fixture.options.map((o) =>
+      o.kind === "FLIGHT" ? { ...o, flightNumber: "LAN2412" } : o,
+    );
+    const providers = createMockProviders({ ABC123: { ...fixture, booking, options } });
+    const response = await assess(makeApp({ providers }));
+    expect(response.statusCode).toBe(200);
+    expect(AssessmentResponseSchema.parse(response.json()).alternatives.status).not.toBe(
+      "UNAVAILABLE",
+    );
+  });
+
+  it.each(["LAN", "LA 500", "la500", "LAN500 ", "LA1234567", "LANX500"])(
+    "still rejects malformed flight designator %j",
+    async (flightNumber) => {
+      const fixture = SCENARIOS.ABC123!;
+      const booking = {
+        ...fixture.booking,
+        segments: fixture.booking.segments.map((s) => ({ ...s, flightNumber })),
+      };
+      const providers = createMockProviders({ ABC123: { ...fixture, booking } });
+      expectProblem(await assess(makeApp({ providers })), ...invalidUpstream);
+    },
+  );
+
+  it("answers unknown routes with a sanitized 404 distinct from BOOKING_NOT_FOUND", async () => {
+    const marker = "secret@example.invalid";
+    const { lines, stream } = capture();
+    const app = makeApp({ logLevel: "info", logStream: stream });
+    const unknown = [
+      await app.inject({ method: "GET", url: `/nope/${marker}?x=1` }),
+      await app.inject({ method: "DELETE", url: `/api/v1/${marker}` }),
+    ];
+    for (const response of unknown) {
+      expect(response.statusCode).toBe(404);
+      expect(response.json()).toEqual({
+        statusCode: 404,
+        error: "Not Found",
+        message: "Route not found",
+      });
+      expect(response.body).not.toContain(marker);
+    }
+    expect(lines.join("")).not.toContain(marker);
+    const missing = await assess(app, "NOPE99");
+    expect(missing.json()).toMatchObject({ code: "BOOKING_NOT_FOUND" });
+    expect(missing.headers["content-type"]).toMatch(/problem\+json/);
+    expect(unknown[0]!.json()).not.toHaveProperty("code");
+  });
+
   it("maps stale booking data to the same public 502 without exposing the internal reason", async () => {
     const response = await assess(
       makeApp({ clock: createSimulationClock("2026-09-15T12:02:40Z") }),
@@ -676,5 +731,46 @@ describe("loadConfig", () => {
     ["65535", 65535],
   ])("accepts PORT=%s", (value, expected) => {
     expect(loadConfig({ PORT: value }).port).toBe(expected);
+  });
+});
+
+describe("startupFailureRecord", () => {
+  const canary = new Error("synthetic@example.invalid 0.0.0.0:3000");
+
+  it.each([
+    ["CONFIG", {}, "INVALID_CONFIGURATION"],
+    ["INIT", {}, "UNEXPECTED_INITIALIZATION_FAILURE"],
+    ["LISTEN", { code: "EADDRINUSE" }, "EADDRINUSE"],
+    ["LISTEN", { code: "EACCES" }, "EACCES"],
+    ["LISTEN", { code: "EADDRNOTAVAIL" }, "EADDRNOTAVAIL"],
+    ["LISTEN", { code: "ECONNRESET" }, "UNEXPECTED_LISTEN_FAILURE"],
+    ["LISTEN", {}, "UNEXPECTED_LISTEN_FAILURE"],
+  ] as const)("%s %j -> %s without leaking error contents", (stage, extra, reasonCode) => {
+    const error = Object.assign(new Error(canary.message), extra, {
+      address: "0.0.0.0",
+      port: 3000,
+    });
+    const record = startupFailureRecord(stage, error);
+    expect(record).toEqual({
+      category: "ERROR",
+      event: "service.startup_failed",
+      stage,
+      reasonCode,
+    });
+    expect(JSON.stringify(record)).not.toMatch(/example|0\.0\.0\.0|3000|stack/);
+  });
+
+  it("classifies a real EADDRINUSE listen failure", async () => {
+    const first = makeApp();
+    await first.listen({ host: "127.0.0.1", port: 0 });
+    const port = (first.server.address() as { port: number }).port;
+    const error: unknown = await makeApp()
+      .listen({ host: "127.0.0.1", port })
+      .catch((e: unknown) => e);
+    expect(startupFailureRecord("LISTEN", error)).toMatchObject({ reasonCode: "EADDRINUSE" });
+  });
+
+  it("tolerates non-object errors", () => {
+    expect(startupFailureRecord("LISTEN", "boom").reasonCode).toBe("UNEXPECTED_LISTEN_FAILURE");
   });
 });

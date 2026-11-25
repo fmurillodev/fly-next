@@ -8,8 +8,10 @@ const zoned = z.object({ local: z.string(), timeZone: z.string() });
 const airport = z.object({ iata: z.string(), country: z.string(), timeZone: z.string() });
 const sourceStatus = z.enum(["OPERATIONAL", "DEGRADED"]);
 const source = z.enum(["OPS_CORE", "AIRPORT_FEED", "LEGACY_MIRROR"]);
-// Compact IATA-style carrier designator, flight digits, and optional operational suffix.
-const flightDesignator = z.string().regex(/^(?:[A-Z][A-Z0-9]|[0-9][A-Z])[0-9]{1,4}[A-Z]?$/);
+// Compact IATA (2-character) or ICAO (3-letter) carrier designator, flight digits, and optional operational suffix.
+const flightDesignator = z
+  .string()
+  .regex(/^(?:[A-Z][A-Z0-9]|[0-9][A-Z]|[A-Z]{3})[0-9]{1,4}[A-Z]?$/);
 
 export const rawBookingSchema = z.object({
   bookingRef: z.string(),

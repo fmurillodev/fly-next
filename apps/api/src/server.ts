@@ -1,8 +1,12 @@
 import { buildApp } from "./app.js";
 import { loadConfig } from "./config.js";
+import { startupFailureRecord, type StartupStage } from "./shared/observability.js";
+
+let stage: StartupStage = "CONFIG";
 
 try {
   const { host, port, logLevel, rateLimitMax } = loadConfig();
+  stage = "INIT";
   const app = buildApp({ logLevel, rateLimitMax });
 
   async function shutdown(): Promise<void> {
@@ -15,11 +19,12 @@ try {
     }
   }
 
+  stage = "LISTEN";
   await app.listen({ host, port });
   process.once("SIGINT", () => void shutdown());
   process.once("SIGTERM", () => void shutdown());
   app.log.info({ category: "METRIC", event: "service.ready" });
-} catch {
-  process.stderr.write('{"category":"ERROR","event":"service.startup_failed"}\n');
+} catch (error) {
+  process.stderr.write(`${JSON.stringify(startupFailureRecord(stage, error))}\n`);
   process.exitCode = 1;
 }

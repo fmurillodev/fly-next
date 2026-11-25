@@ -13,7 +13,8 @@ FlyNext is a read-only demo with synthetic historical fixtures. Operational logs
 | `BUSINESS` | `assessment.completed` | `assessmentStatus`, `severity`, `connectionStatus`, `recommendation`, `priority`: distinguish partial results and human-review recommendations from failures. |
 | `ERROR` | `provider.failed` | `provider`, `failure`: normalized expected failure, excluding ordinary unknown booking lookups. |
 | `ERROR` | `assessment.failed`, `http.unexpected_failure` | `code`; `assessment.failed` also includes the fixed `stage` (`ASSESSMENT`, `PRESENTATION`, `DTO_VALIDATION`). No exception contents. |
-| `ERROR` | `service.startup_failed`, `service.shutdown_failed` | Fixed lifecycle failures without exception contents. |
+| `ERROR` | `service.startup_failed` | `stage` (`CONFIG`, `INIT`, `LISTEN`) and `reasonCode` (`INVALID_CONFIGURATION`, `UNEXPECTED_INITIALIZATION_FAILURE`, `EADDRINUSE`, `EACCES`, `EADDRNOTAVAIL`, `UNEXPECTED_LISTEN_FAILURE`), written as one JSON line to stderr. No exception contents, environment values, host or port. |
+| `ERROR` | `service.shutdown_failed` | Fixed lifecycle failure without exception contents. |
 | `ALERT` | `http.assessment_rate_limited` | The assessment was throttled; no IP in the log. This is a log category, not an active alert. |
 
 ## Diagnosis
@@ -23,6 +24,8 @@ FlyNext is a read-only demo with synthetic historical fixtures. Operational logs
 - For HTTP 200 with uncertainty, inspect `assessment.completed`, then `assessment.data_quality` and `provider.failed`. An events failure can produce `INDETERMINATE`; missing policies or alternatives can produce `PARTIAL`. Neither implies there was no disruption or that a benefit was granted.
 - For a 502, distinguish malformed booking data from a stale booking using `provider.failed` and `assessment.booking_stale`. For a 500, use the fixed failure stage and look for `provider.read` with `outcome=THREW`. Do not turn on raw payload or stack logging to diagnose an incident.
 - For 429s, check `Retry-After`, instance volume and whether a trusted deployment proxy causes multiple callers to share the same peer IP.
+
+The generic 404 for unknown routes (`{statusCode, error, message: "Route not found"}`) is intentionally sanitized: it never echoes the method, path or query, and it is distinct from the `BOOKING_NOT_FOUND` problem. It currently carries no request ID, so it cannot be correlated with logs; only assessment responses expose `X-Request-Id`.
 
 ## Demo limitations and future metrics
 
