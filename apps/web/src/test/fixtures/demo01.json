@@ -1,0 +1,122 @@
+{
+  "requestId": "req_d80fbe75-5a95-46d3-ba4f-f0b569023713",
+  "assessmentStatus": "COMPLETE",
+  "disruption": {
+    "severity": "NONE",
+    "summary": {
+      "code": "DISRUPTION_NONE",
+      "title": "Tu viaje no presenta alteraciones verificadas",
+      "message": "No hay alteraciones verificadas en tu viaje."
+    },
+    "events": [
+      {
+        "segmentId": "DEMO01-S1",
+        "flightNumber": "LA501",
+        "origin": {
+          "code": "SCL",
+          "timeZone": "America/Santiago"
+        },
+        "destination": {
+          "code": "LIM",
+          "timeZone": "America/Lima"
+        },
+        "scheduledDeparture": {
+          "local": "2026-09-15T14:30:00-03:00",
+          "timeZone": "America/Santiago",
+          "utc": "2026-09-15T17:30:00Z"
+        },
+        "scheduledArrival": {
+          "local": "2026-09-15T17:55:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-15T22:55:00Z"
+        },
+        "flightStatus": "ON_TIME",
+        "severity": "NONE",
+        "delay": {
+          "status": "NOT_DELAYED"
+        },
+        "gate": {
+          "status": "UNKNOWN",
+          "reason": "UNAVAILABLE"
+        },
+        "message": {
+          "code": "FLIGHT_ON_TIME",
+          "title": "Tu vuelo LA501 est\u00e1 en horario",
+          "message": "No hay retrasos informados para el vuelo LA501. A\u00fan no hay informaci\u00f3n verificada sobre la puerta de embarque."
+        }
+      }
+    ]
+  },
+  "connection": null,
+  "policies": {
+    "available": true,
+    "policyId": "POL-DELAY-2026-03",
+    "version": "2026.03",
+    "validity": "VALID",
+    "evaluations": [
+      {
+        "rule": "R1",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R2",
+        "benefit": "MEAL_VOUCHER",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R3",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R4",
+        "benefit": "CASH_COMPENSATION",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R5",
+        "benefit": "PRIORITY_HANDLING",
+        "status": "NOT_APPLICABLE"
+      }
+    ]
+  },
+  "recommendation": {
+    "type": "NO_ACTION_REQUIRED",
+    "priority": "LOW",
+    "reasonCodes": [],
+    "message": {
+      "code": "RECOMMENDATION_NO_ACTION",
+      "title": "No necesitas hacer nada por ahora",
+      "message": "Tu vuelo est\u00e1 en horario seg\u00fan la informaci\u00f3n verificada.",
+      "nextSteps": [
+        "Revisa el estado de tu vuelo antes de salir al aeropuerto: la informaci\u00f3n puede cambiar."
+      ]
+    }
+  },
+  "alternatives": {
+    "status": "NOT_REQUIRED"
+  },
+  "actions": {
+    "executed": [],
+    "recommended": ["NO_ACTION_REQUIRED"]
+  },
+  "warnings": [],
+  "metadata": {
+    "assessedAt": "2026-09-15T11:02:40Z",
+    "locale": "es",
+    "policyRefs": [
+      {
+        "id": "POL-DELAY-2026-03",
+        "version": "2026.03"
+      }
+    ],
+    "mode": "SIMULATION",
+    "dataSnapshot": "historical-fixture",
+    "notice": {
+      "code": "SIMULATION_MODE",
+      "title": "Datos de demostraci\u00f3n",
+      "message": "Esta evaluaci\u00f3n usa datos sint\u00e9ticos hist\u00f3ricos y no refleja informaci\u00f3n operacional en tiempo real."
+    }
+  }
+}
