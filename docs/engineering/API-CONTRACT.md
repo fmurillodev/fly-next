@@ -1,6 +1,8 @@
-# FlyNext — REST API Contract (PROPOSAL)
+# FlyNext — REST API Contract
 
-> **Status:** resolutions A02–A08 are approved by the maintainer (see `DOMAIN-DECISIONS.md`, "Approved resolutions"). The complete DTO remains a **proposal** until final approval at gate G3, before PR-04. No schemas or endpoints are implemented. The section "Definitive DTO proposal (PR-03)" at the end supersedes the illustrative example and the open questions below for G3 review.
+> **Status:** The maintainer approved the public DTO for PR-04 with C01–C05 (ODD L20). A02–A08 remain in force (see `DOMAIN-DECISIONS.md`, "Approved resolutions"). Approval describes the wire contract, not deployment status.
+
+The Zod schemas exported by `@flynext/contracts` are the executable source of truth: `AssessmentRequestSchema`, `AssessmentResponseSchema`, `PassengerMessageSchema`, and `ProblemDetailsSchema`. Their corresponding types are inferred from those schemas. `healthResponseSchema` is unchanged. PR-06 owns creation of `README.md`; its absence does not block PR-04.
 
 ## Endpoint
 
@@ -19,78 +21,11 @@ Request (`application/json`, Zod-validated, size-limited, unknown keys rejected)
 - Public timestamps are ISO 8601 **with explicit offset**, rendered in the local airport zone (IANA: `America/Santiago`, `America/Lima`, `America/Mexico_City`) with the zone name alongside.
 - Comparisons, durations and freshness are computed in UTC. The `Clock` is injectable; simulated reference instant: `2026-09-15T11:02:40Z`.
 - Offsets are resolved per date from the IANA database, never assumed constant. Verified with Node `Intl` for 2026-09-15/16: Santiago `-03:00`, Lima `-05:00`, Mexico City `-06:00`.
-- `projectedArrival` is a projection, not a confirmed operational fact.
+- `connection.inboundArrival.confirmed: false` marks a projection, not a confirmed operational fact.
 
-## Success response (200) — ABC123 (illustrative)
+## Success response (200)
 
-```json
-{
-  "requestId": "req_01",
-  "assessmentStatus": "PARTIAL",
-  "disruption": {
-    "severity": "CRITICAL",
-    "events": [
-      {
-        "segmentId": "S1",
-        "flightNumber": "LA500",
-        "flightStatus": "DELAYED",
-        "severity": "WARNING",
-        "delayMinutes": 160,
-        "delayConfirmed": true,
-        "estimatedDeparture": { "local": "2026-09-15T17:10:00-03:00", "timeZone": "America/Santiago" },
-        "gate": "24"
-      },
-      { "segmentId": "S2", "flightNumber": "LA2410", "flightStatus": "SCHEDULED", "severity": "NONE" }
-    ]
-  },
-  "connection": {
-    "status": "AT_RISK",
-    "lossConfirmed": false,
-    "originalConnectionMinutes": 70,
-    "projectedArrival": { "local": "2026-09-15T20:35:00-05:00", "timeZone": "America/Lima", "confirmed": false },
-    "projectedMarginMinutes": -90,
-    "note": "Projection from the departure delay; not a confirmed arrival."
-  },
-  "policies": {
-    "policyId": "POL-DELAY-2026-03",
-    "evaluations": [
-      { "rule": "R1", "benefit": "REBOOK_NO_FEE", "status": "NOT_APPLICABLE" },
-      { "rule": "R2", "benefit": "MEAL_VOUCHER", "status": "NOT_APPLICABLE" },
-      { "rule": "R3", "benefit": "REBOOK_NO_FEE", "status": "INSUFFICIENT_EVIDENCE" },
-      { "rule": "R4", "benefit": "CASH_COMPENSATION", "status": "NOT_APPLICABLE" },
-      { "rule": "R5", "benefit": "PRIORITY_HANDLING", "status": "REQUIRES_HUMAN_APPROVAL" }
-    ]
-  },
-  "recommendation": {
-    "type": "HUMAN_REVIEW",
-    "priority": "HIGH",
-    "reasonCodes": ["CONNECTION_AT_RISK", "PRIORITY_REVIEW_REQUIRED", "INCOMPLETE_FARE_CONDITIONS"],
-    "summary": "A human agent should review this itinerary. No benefit is guaranteed."
-  },
-  "alternatives": [
-    { "optionId": "O1", "kind": "FLIGHT", "flightNumber": "LA2412",
-      "departure": { "local": "2026-09-16T08:15:00-05:00", "timeZone": "America/Lima" },
-      "eligibility": "PENDING_VALIDATION", "reasonCodes": ["FARE_CONDITIONS_INCOMPLETE"], "seatsCoverGroup": true },
-    { "optionId": "O2", "kind": "FLIGHT", "flightNumber": "LA2450",
-      "departure": { "local": "2026-09-15T23:40:00-05:00", "timeZone": "America/Lima" },
-      "eligibility": "NOT_ELIGIBLE", "reasonCodes": ["INSUFFICIENT_SEATS_FOR_GROUP"], "seatsCoverGroup": false },
-    { "optionId": "O3", "kind": "REFUND", "eligibility": "REQUIRES_REVIEW", "reasonCodes": ["LOW_CONFIDENCE"] }
-  ],
-  "actions": { "executed": [], "recommended": ["HUMAN_REVIEW"] },
-  "warnings": [
-    { "code": "SOURCE_CONFLICT_RESOLVED", "message": "Some operational data was verified against the most reliable available source." },
-    { "code": "FARE_CONDITIONS_INCOMPLETE", "message": "Change penalty is unknown; no free rebooking is guaranteed." }
-  ],
-  "metadata": {
-    "assessedAt": "2026-09-15T11:02:40Z",
-    "mode": "SIMULATION",
-    "dataSnapshot": "historical-fixture",
-    "policyRefs": [{ "id": "POL-DELAY-2026-03" }]
-  }
-}
-```
-
-Notes:
+See the complete ABC123, DEMO01 and DEMO02 DTO examples below.
 
 - `severity` (`NONE|INFO|WARNING|CRITICAL|UNKNOWN`), `assessmentStatus`, `flightStatus`, `connection.status`, policy `status`, `recommendation.type` and `recommendation.priority` are independent enums (D08, A07). Severity is **not** priority, assessment status or connection status.
 - D01 → severity mapping: no verified disruption → `NONE`; informative → `INFO`; relevant → `WARNING`; critical → `CRITICAL`; not determinable → `UNKNOWN`. Aggregate `disruption.severity` is the highest event/connection severity; for ABC123 the at-risk connection makes it `CRITICAL` while the delayed S1 event is `WARNING` (160 min ≥ 30).
@@ -110,11 +45,11 @@ Notes:
 | policy `status` | `APPLICABLE`, `NOT_APPLICABLE`, `REQUIRES_HUMAN_APPROVAL`, `INSUFFICIENT_EVIDENCE` |
 | `recommendation.type` | `NO_ACTION_REQUIRED`, `MONITOR_FLIGHT`, `REVIEW_REBOOKING_OPTIONS`, `HUMAN_REVIEW` |
 | `recommendation.priority` | `LOW`, `NORMAL`, `HIGH` |
-| alternative `eligibility` (proposed) | `ELIGIBLE`, `PENDING_VALIDATION`, `NOT_ELIGIBLE`, `REQUIRES_REVIEW` |
+| alternative `eligibility` | `ELIGIBLE`, `PENDING_VALIDATION`, `NOT_ELIGIBLE`, `REQUIRES_REVIEW` |
 
 ## Degraded responses (200)
 
-If enough information exists for controlled degradation, respond 200 with `assessmentStatus` `PARTIAL` or `INDETERMINATE`, affected sections flagged (`"available": false` + reason code), and no guaranteed benefits or unverified alternatives (D10, A06).
+If enough information exists for controlled degradation, respond 200 with `assessmentStatus` `PARTIAL` or `INDETERMINATE`. Unavailable policies and alternatives use their own explicit branches (see Shape). Missing or unverified operational facts use the unknown states and sanitized warnings; they do not mean there is no disruption. Degraded responses do not guarantee benefits or present unverified alternatives as eligible (D10, A06).
 
 ## Errors
 
@@ -151,38 +86,29 @@ Failures of events/policies/alternatives providers, or invalid responses from th
 
 Public/demo: `ABC123` (mandatory), `DEMO01` (normal verified flight), `DEMO02` (190-min delay). `DEMO03`–`DEMO06` live only as automated-test fixtures. All data is synthetic.
 
-## Remaining open questions for G3
+## Public assessment DTO
 
-1. Whether `/health` exposes mode/version.
-2. Exact `alternatives[].eligibility` enum and `warnings[].code` catalogue.
-3. Whether `available: false` flags or omission is used for degraded sections.
-4. Final shape of time objects (`local` + `timeZone`, with or without a UTC field).
-
-## Definitive DTO proposal (PR-03, pending G3)
-
-Produced after the domain engine exists: every field below is backed by an internal result (`DisruptionAssessment`) and is built by an allowlist mapper in PR-04. Internal entities are never serialized directly. Changes against the illustrative example above are marked **Δ**.
+The presentation layer builds the DTO with an explicit allowlist. Internal entities are never serialized directly, and the public schemas reject unknown object keys.
 
 ### Shape
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `requestId` | string | Correlation id. |
-| `assessmentStatus` | `COMPLETE\|PARTIAL\|INDETERMINATE` | |
-| `disruption.severity` | Severity | Aggregate (A07). |
-| `disruption.events[]` | `{ segmentId, flightNumber, flightStatus, severity, delay, estimatedDeparture?, gate }` | **Δ** `delay` and `gate` are explicit objects (see unknown semantics). |
-| `connection` | `null \| { status, lossConfirmation, originalConnectionMinutes, inboundArrival?, marginMinutes?, note }` | **Δ** `null` for a single-segment itinerary. `lossConfirmation` ∈ `CONFIRMED_MISSED\|CONFIRMED_NOT_MISSED\|NOT_CONFIRMED` replaces the boolean `lossConfirmed`. `inboundArrival` = `{ time, confirmed }`; `confirmed:false` is an inference. |
-| `policies` | `{ available:true, policyId, version, validity, evaluations[{rule, benefit, status}] } \| { available:false, reasonCode }` | **Δ** non-`VALID` validity ⇒ `evaluations: []`. |
-| `recommendation` | `{ type, priority, reasonCodes[], summary }` | Public reason-code mapping below. |
-| `alternatives` | `{ status:"EVALUATED", options[] } \| { status:"NOT_REQUIRED" } \| { status:"UNAVAILABLE", reasonCode }` | **Δ** option = `{ optionId, kind, flightNumber?, departure?, eligibility, reasonCodes[] }`; `seatsCoverGroup` dropped (derivable from reason codes). |
-| `actions` | `{ executed: [], recommended: [type] }` | `executed` is always empty in V1 (D07). |
-| `warnings[]` | `{ code, message }` | Closed catalogue below; sanitized messages. |
-| `metadata` | `{ assessedAt, mode, dataSnapshot, policyRefs[] }` | `mode` ∈ `SIMULATION\|REAL_TIME`; `dataSnapshot:"historical-fixture"` when simulated. |
+| `assessmentStatus` | `COMPLETE`, `PARTIAL`, `INDETERMINATE` | |
+| `disruption` | `{ severity, summary: PassengerMessage, events[] }` | Aggregate severity (A07). |
+| `disruption.events[]` | `{ segmentId, flightNumber, origin, destination, scheduledDeparture, scheduledArrival, flightStatus, severity, delay, estimatedDeparture?, gate, message: PassengerMessage }` | `origin` and `destination` are `{ code, timeZone }`; departure and arrival fields are time objects. |
+| `connection` | `null` or `{ status, lossConfirmation, originalConnectionMinutes, inboundArrival?, marginMinutes?, message: PassengerMessage }` | `null` for a single-segment itinerary. `lossConfirmation` is `CONFIRMED_MISSED`, `CONFIRMED_NOT_MISSED`, or `NOT_CONFIRMED`. `inboundArrival` is `{ time, confirmed }`; `false` identifies a projection and `true` a confirmed actual arrival. |
+| `policies` | `{ available: true, policyId, version, validity, evaluations[] }` or `{ available: false, reasonCode: "POLICIES_UNAVAILABLE" }` | Each evaluation is `{ rule, benefit, status }`; non-`VALID` policies have `evaluations: []`. |
+| `recommendation` | `{ type, priority, reasonCodes[], message: PassengerMessage }` | No `summary` field. Public reason-code mapping below. |
+| `alternatives` | `{ status: "EVALUATED", options[] }`, `{ status: "NOT_REQUIRED" }`, or `{ status: "UNAVAILABLE", reasonCode: "ALTERNATIVES_UNAVAILABLE" }` | Each option is `{ optionId, kind, flightNumber?, departure?, eligibility, reasonCodes[], message: PassengerMessage }`; `kind` is `FLIGHT` or `REFUND`. |
+| `actions` | `{ executed: [], recommended: [type] }` | `executed` is always empty in V1 (D07); `recommended` carries the single recommendation type. |
+| `warnings[]` | `{ code, title, message }` | Closed catalogue below; always `[]` when there are no warnings. |
+| `metadata` | `{ assessedAt, mode, dataSnapshot, locale, policyRefs[], notice? }` | `locale` is `es`; policy refs are `{ id, version }`. `SIMULATION` requires `dataSnapshot: "historical-fixture"` and a `notice: PassengerMessage`. `REAL_TIME` allows a string snapshot and an optional notice; synthetic data never uses this mode. |
 
-Time object: `{ local, timeZone, utc }` — `local` ISO 8601 with offset resolved per date, `timeZone` IANA, `utc` ISO instant. **Δ** `utc` added so clients never recompute offsets; `metadata.assessedAt` is UTC `Z`.
+Time object: `{ local, timeZone, utc }` — `local` is ISO 8601 with an explicit offset resolved per date, `timeZone` is IANA, and `utc` is an ISO instant ending in `Z`. `metadata.assessedAt` is also UTC `Z`. The presenter supplies matching local and UTC values; clients need not recompute offsets.
 
-### Enums
-
-`assessmentStatus`, `severity`, `flightStatus`, `connection.status`, policy `status`, `recommendation.type`, `priority`: unchanged (see Enumerations). `eligibility` ∈ `ELIGIBLE\|PENDING_VALIDATION\|NOT_ELIGIBLE\|REQUIRES_REVIEW` (confirmed by the implementation). `connection.lossConfirmation` as above. `policies.validity` ∈ `VALID\|EXPIRED\|NOT_YET_VALID\|INACTIVE\|UNSUPPORTED`.
+`policies.validity`: `VALID`, `EXPIRED`, `NOT_YET_VALID`, `INACTIVE`, `UNSUPPORTED`. Policy evaluation `rule`: `R1`–`R5`. Benefit: `REBOOK_NO_FEE`, `MEAL_VOUCHER`, `CASH_COMPENSATION`, `PRIORITY_HANDLING`.
 
 ### Unknown semantics
 
@@ -200,7 +126,7 @@ Recommendation codes (public): `CONNECTION_AT_RISK`, `CONNECTION_MISSED`, `CONNE
 
 Alternative codes: `STALE_OPTION`, `DEPARTED`, `ITINERARY_INCOMPATIBLE`, `NOT_REACHABLE`, `REACHABILITY_UNCONFIRMED`, `INSUFFICIENT_SEATS_FOR_GROUP`, `SEATS_UNKNOWN`, `CHANGES_NOT_ALLOWED`, `FARE_CONDITIONS_INCOMPLETE`, `CHANGE_PENALTY_APPLIES`, `FARE_DIFFERENCE_APPLIES`, `FARE_DIFFERENCE_UNKNOWN`, `LOW_CONFIDENCE`, `MEDIUM_CONFIDENCE`, `REFUND_REQUIRES_REVIEW`, `REBOOKING_NOT_AUTHORIZED_BY_POLICY`.
 
-Warning codes (closed catalogue, **Δ** answers open question 2): `SOURCE_CONFLICT_RESOLVED`, `SOURCE_CONFLICT_UNRESOLVED`, `OPERATIONAL_DATA_STALE`, `OPERATIONAL_DATA_UNAVAILABLE`, `DEGRADED_SOURCE_LIMITED`, `SECONDARY_SOURCE_ONLY`, `FARE_CONDITIONS_INCOMPLETE`, `POLICIES_UNAVAILABLE`, `POLICY_NOT_VALID`, `ALTERNATIVES_UNAVAILABLE`.
+Warning codes (closed catalogue): `SOURCE_CONFLICT_RESOLVED`, `SOURCE_CONFLICT_UNRESOLVED`, `OPERATIONAL_DATA_STALE`, `OPERATIONAL_DATA_UNAVAILABLE`, `DEGRADED_SOURCE_LIMITED`, `SECONDARY_SOURCE_ONLY`, `FARE_CONDITIONS_INCOMPLETE`, `POLICIES_UNAVAILABLE`, `POLICY_NOT_VALID`, `ALTERNATIVES_UNAVAILABLE`.
 
 ### ABC123 (result of the implemented engine)
 
@@ -220,14 +146,6 @@ Warning codes (closed catalogue, **Δ** answers open question 2): `SOURCE_CONFLI
 
 Request validation (400) and rate limiting (429) belong to the presentation layer in PR-04.
 
-### Open questions for G3 (status after the G3 refinement)
-
-1. `/health` mode/version: recommend **no** (keep `{ "status": "ok" }`). Still open.
-2. Eligibility enum and warning catalogue: as implemented above. Still open.
-3. Degraded sections: explicit `available:false` / `status` objects. Still open.
-4. Time objects: `local` + `timeZone` + `utc`. Still open.
-5. `STALE_BOOKING_CONTEXT` → 502 `INVALID_UPSTREAM_RESPONSE` with the internal reason kept: **approved** (P10).
-
 Note on connection semantics after P5: `AT_RISK` needs a projected margin ≤ 0 or operational evidence of risk; a reduced but still positive margin without evidence is `UNKNOWN`; `SAFE` needs sufficient evidence; `MISSED` needs confirmation. `CONFIRMED_NOT_MISSED` appears only together with `SAFE` on a confirmed arrival.
 
 ## Passenger communication (G3 refinement)
@@ -243,17 +161,17 @@ interface PassengerMessage {
 }
 ```
 
-**Where it applies (evaluation):**
+**Where it applies:**
 
 | Section | `message` | Why |
 | --- | --- | --- |
 | `disruption.summary` and each `disruption.events[]` | yes | The passenger needs the headline and per-flight facts (delay, new time, gate). |
 | `connection` | yes | The highest-stress item; must separate confirmed facts from the projected arrival. |
-| `recommendation` | yes, with `nextSteps` | The only place that states benefits (conditionally) and what to do next. |
+| `recommendation` | yes; `nextSteps` when applicable | The only place that states benefits (conditionally) and what to do next. |
 | `alternatives.options[]` | yes | Each option needs its own plain explanation of what is and is not confirmed. |
 | `warnings[]` | yes (`title` + `message`, one sentence) | Cross-cutting caveats; never duplicated by a section that already says the same. |
 | `policies.evaluations[]` | **no** | Per-rule texts would read as promises (D07). Benefits are folded into the recommendation message with "sujeto a confirmación". |
-| `metadata.notice` | yes | Simulation label; historical data is never shown as real time (D03). |
+| `metadata.notice` | required in simulation | Simulation label; historical data is never shown as real time (D03). |
 
 **Structured data stays alongside the text** so the UI can render times, delays, gates, options and conditions on its own: time objects (`local`, `timeZone`, `utc`), `delay`, `gate`, `inboundArrival`, `marginMinutes`, `originalConnectionMinutes`, `scheduledDeparture/Arrival`, `origin/destination`, `eligibility` and `reasonCodes`.
 
@@ -267,13 +185,13 @@ interface PassengerMessage {
 - No duplicated sentences between sections; tone informative, not alarmist (severity drives style in the UI, not exclamation in the text).
 - Times are rendered in the airport's own zone with its name ("17:10 (hora de Santiago)"); dates in short Spanish form.
 
-**Architecture (PR-04, not implemented now):** a `PassengerMessageComposer` in `apps/api/src/disruption/presentation/` takes the internal `DisruptionAssessment`, a locale (`"es"` only in V1) and returns the messages. Templates are deterministic functions in a per-locale catalog (`messages.es.ts`) keyed by `code`; a future `en` catalog only adds a file. The composer is part of the public-DTO mapper (allowlist); `domain/` and `application/` contain no presentation text and no LLM or i18n library is introduced. PR-04 tests: one test per template code, "no enum or code leaks into any title/message", "no guarantee wording outside negations", "output varies with input (different delay, flight, times)", and "no PII". Visual representation and accessibility belong to PR-05.
+**Architecture (PR-04):** a `PassengerMessageComposer` in `apps/api/src/disruption/presentation/` takes the internal `DisruptionAssessment`, a locale (`"es"` only in V1) and returns the messages. Templates are deterministic functions in a per-locale catalog (`messages.es.ts`) keyed by `code`; a future `en` catalog only adds a file. The composer is part of the public-DTO mapper (allowlist); `domain/` and `application/` contain no presentation text and no LLM or i18n library is introduced. PR-04 tests: one test per template code, "no enum or code leaks into any title/message", "no guarantee wording outside negations", "output varies with input (different delay, flight, times)", and "no PII". Visual representation and accessibility belong to PR-05.
 
 **Template variants** (code identifies the variant): `CONNECTION_AT_RISK_PROJECTED_DELAY` (margin ≤ 0 from a delay), `CONNECTION_AT_RISK_CANCELLATION_REPORTED` (unconfirmed cancellation report), `CONNECTION_UNKNOWN` (positive margin, no evidence), `CONNECTION_SAFE`, `CONNECTION_MISSED_CONFIRMED`; `FLIGHT_DELAYED_CONFIRMED`, `FLIGHT_DELAYED_UNCONFIRMED`, `FLIGHT_CANCELLED`, `FLIGHT_ON_TIME`, `FLIGHT_ON_SCHEDULE`, `FLIGHT_STATUS_UNVERIFIED`; `DISRUPTION_NONE`, `DISRUPTION_INFO`, `DISRUPTION_RELEVANT`, `DISRUPTION_CRITICAL`, `DISRUPTION_UNDETERMINED`; `RECOMMENDATION_NO_ACTION`, `RECOMMENDATION_MONITOR`, `RECOMMENDATION_REVIEW_OPTIONS`, `RECOMMENDATION_HUMAN_REVIEW`; `OPTION_ELIGIBLE`, `OPTION_PENDING_VALIDATION`, `OPTION_NOT_ELIGIBLE_*`, `OPTION_REQUIRES_REVIEW`, `OPTION_REFUND_REQUIRES_REVIEW`; `SIMULATION_MODE`.
 
-### Complete DTO examples (proposal)
+### Complete DTO examples
 
-Structured fields (statuses, minutes, instants, option eligibility, reason codes, warnings) were cross-checked against the actual output of the implemented engine for these three fixtures. The Spanish `title`/`message`/`nextSteps` texts are the proposed templates rendered by hand: no composer exists yet (PR-04).
+These are approved wire examples for the three public synthetic fixtures. They illustrate the Spanish `title`, `message` and optional `nextSteps` fields. The composer generates text dynamically from the assessment; the frontend never constructs business messages from enums.
 
 Policies are shown with the five evaluations in order R1–R5. `decisionTrace` is never part of the DTO.
 
