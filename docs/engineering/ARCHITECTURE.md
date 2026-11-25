@@ -1,6 +1,6 @@
 # FlyNext — Architecture
 
-> Status: PR-00 proposal. Implementation starts in PR-01 (foundation) and PR-03/04 (domain, API).
+> Status: PR-00 proposal; foundation (PR-01/02) and the domain engine (PR-03) are implemented. The HTTP presentation layer and shared observability arrive in PR-04.
 
 ## Repository layout (target)
 
@@ -25,6 +25,16 @@ shared/ (or equivalent, only when needed)
 ```
 
 Folders are created when they hold code, never as empty placeholders.
+
+## Implemented in PR-03 (`apps/api/src/disruption`)
+
+| Layer | Files | Responsibility |
+| --- | --- | --- |
+| `domain/` | `model`, `time`, `config`, `reconciliation`, `classification`, `connection`, `policies`, `alternatives`, `recommendation`, `ports` | Pure rules and types; imports no framework (checked: no `fastify`, `axios`, `react`, `pino`, `zod`, `node:`). |
+| `application/` | `assess-disruption` | `createAssessDisruption(deps)`: orchestration, controlled degradation, `decisionTrace`. Callable without HTTP. |
+| `infrastructure/` | `provider-payloads`, `mappers`, `fixtures`, `mock-providers`, `clock` | Zod-validated provider payloads, explicit mappers (drop PII, reject offsets that disagree with the IANA zone), synthetic scenarios, local mock adapters, simulation clock. |
+
+Dependencies point inward (`infrastructure → domain`, `application → domain`). Ports return `ProviderResult` values for expected failures; thrown exceptions are programming errors and are never converted into business results. Not implemented on purpose: HTTP route, logging, write ports, databases, a generic rule engine.
 
 ## Principles
 
