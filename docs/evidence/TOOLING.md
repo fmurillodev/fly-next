@@ -166,3 +166,9 @@ Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm
 - **Length check:** Markdown has no pagination; README and AI-USAGE were printed to A4 PDF with headless Google Chrome 158 (15 mm margins, 10 pt, compact tables) through a temporary converter kept outside the repository: README 2 pages, AI-USAGE 1 page. At 11 pt they spill slightly (about 2.1 and 1.1 pages). Active working time for PR-06 was not measured.
 - **Final iteration (L31):** Archify `feedback_links: false` set in all five JSON sources (supported option; removes the feedback footer including its mailto link); legend labels renamed for unused categories (`database`, `messagebus`) in the two architecture sources, since the supported legend config does not hide a category while it is drawn. HTML and SVG regenerated through `finalize` (all gates passed) and `export-svg`. Static inspection: no `fetch`, `XMLHttpRequest`, `WebSocket`, `<link>` or `<iframe>`; assets embedded; remaining external URLs are clickable attribution and license links. **Not completed:** dynamic check of network requests, console and offline behavior in a real browser; the attempt was stopped by the maintainer and is recorded as a limitation. A4 length at 11 pt: README 2 pages, AI-USAGE 1 page.
 
+## PR-06 merge and G6 closure — observed 2026-11-25
+
+- **Merge:** PR #6 merged preserving history as `da9b5355f8c980a758b77debe40ba3a6096a8c24` (head `a27a77b`). PR CI run `45707697130` and `main` CI run `45707817329` succeeded.
+- **Railway:** no automatic deployment; latest deployment unchanged (`8ee89764-9b8e-4a2e-a157-19c86cc42b58`); `/health` 200; nothing deployed manually.
+- **GitHub rendering:** documents and SVGs return 200 from `main`; the compact SVG is served as `image/svg+xml` and referenced by the repository page. Visual rendering in a browser was not inspected.
+
