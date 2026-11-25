@@ -80,8 +80,9 @@ describe("passenger experience", () => {
 
     const la500 = (await screen.findByText("LA500")).closest("li")!;
     const la2410 = screen.getByText("LA2410").closest("li")!;
-    expect(within(la500).getByText("Retraso confirmado: 160 min")).toBeVisible();
-    expect(within(la500).getByText("Puerta 24")).toBeVisible();
+    expect(within(la500).getByText("Retraso confirmado")).toBeVisible();
+    expect(within(la500).getByText("160")).toBeVisible();
+    expect(within(la500).getByText("24")).toBeVisible();
     expect(within(la2410).queryByText(/Retraso confirmado/)).not.toBeInTheDocument();
     expect(within(la2410).getByText("Puerta sin informar")).toBeVisible();
     expect(within(la2410).getByText("Sin retraso informado")).toBeVisible();

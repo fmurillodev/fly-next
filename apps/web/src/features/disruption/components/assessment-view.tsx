@@ -23,30 +23,36 @@ export function ResultHeader({
       aria-labelledby="result-title"
       className="mx-auto max-w-page px-5 pb-10 pt-4 text-white sm:px-8"
     >
-      <p className="text-sm font-bold text-soft">Reserva consultada</p>
-      <h1
-        id="result-title"
-        tabIndex={-1}
-        ref={(node) => node?.focus({ preventScroll: true })}
-        className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl"
-      >
-        {bookingId}
-      </h1>
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <StatusBadge tone={severity.tone}>{severity.text}</StatusBadge>
-        <span className="rounded-full bg-white/15 px-3 py-1 text-sm font-semibold">
-          {assessmentStatusLabel[data.assessmentStatus]}
-        </span>
+      <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr] lg:items-end lg:gap-10">
+        <div>
+          <p className="text-sm font-bold text-soft">Reserva consultada</p>
+          <h1
+            id="result-title"
+            tabIndex={-1}
+            ref={(node) => node?.focus({ preventScroll: true })}
+            className="mt-1 text-4xl font-extrabold tracking-tight sm:text-5xl"
+          >
+            {bookingId}
+          </h1>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <StatusBadge tone={severity.tone}>{severity.text}</StatusBadge>
+            <span className="rounded-full bg-white/15 px-3 py-1 text-sm font-semibold">
+              {assessmentStatusLabel[data.assessmentStatus]}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onNewQuery}
+            className="mt-6 min-h-11 rounded-input bg-white px-5 font-bold text-midnight hover:bg-slate-100"
+          >
+            Consultar otra reserva
+          </button>
+        </div>
+        <div className="rounded-card bg-white/10 p-5 sm:p-6">
+          <p className="text-lg font-bold">{data.disruption.summary.title}</p>
+          <p className="mt-1 text-slate-100">{data.disruption.summary.message}</p>
+        </div>
       </div>
-      <p className="mt-4 max-w-3xl text-lg font-semibold">{data.disruption.summary.title}</p>
-      <p className="mt-1 max-w-3xl text-slate-200">{data.disruption.summary.message}</p>
-      <button
-        type="button"
-        onClick={onNewQuery}
-        className="mt-6 min-h-11 rounded-input bg-white px-5 font-bold text-midnight hover:bg-slate-100"
-      >
-        Consultar otra reserva
-      </button>
     </section>
   );
 }

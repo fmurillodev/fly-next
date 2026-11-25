@@ -60,19 +60,21 @@ export const eligibilityLabel: Record<Alternative["eligibility"], Label> = {
   REQUIRES_REVIEW: { text: "Requiere revisión", tone: "info" },
 };
 
-export function delayLabel(delay: Segment["delay"]): Label {
+type Delay = { label: string; minutes?: number; tone: Tone };
+
+export function delayDisplay(delay: Segment["delay"]): Delay {
   switch (delay.status) {
     case "CONFIRMED":
-      return { text: `Retraso confirmado: ${delay.minutes} min`, tone: "warn" };
+      return { label: "Retraso confirmado", minutes: delay.minutes, tone: "warn" };
     case "UNCONFIRMED":
-      return { text: `Retraso sin confirmar: ${delay.minutes} min`, tone: "info" };
+      return { label: "Retraso sin confirmar", minutes: delay.minutes, tone: "info" };
     case "NOT_DELAYED":
-      return { text: "Sin retraso informado", tone: "ok" };
+      return { label: "Sin retraso informado", tone: "ok" };
     case "UNKNOWN":
-      return { text: "Retraso sin verificar", tone: "unknown" };
+      return { label: "Retraso sin verificar", tone: "unknown" };
   }
 }
 
-export function gateLabel(gate: Segment["gate"]): string {
-  return gate.status === "KNOWN" ? `Puerta ${gate.value}` : "Puerta sin informar";
+export function gateValue(gate: Segment["gate"]): string | undefined {
+  return gate.status === "KNOWN" ? gate.value : undefined;
 }

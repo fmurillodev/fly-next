@@ -3,6 +3,7 @@ import { Footer } from "./components/layout/footer";
 import { Header } from "./components/layout/header";
 import { AssessmentView, ResultHeader } from "./features/disruption/components/assessment-view";
 import { BookingForm } from "./features/disruption/components/booking-form";
+import { OverviewCards } from "./features/disruption/components/overview-cards";
 import { Hero } from "./features/disruption/components/hero";
 import { FailurePanel, LoadingPanel } from "./features/disruption/components/query-feedback";
 import { useAssessment } from "./features/disruption/hooks/use-assessment";
@@ -34,6 +35,7 @@ export function App() {
       </div>
 
       <main className="mx-auto w-full max-w-page flex-1 px-5 py-6 sm:px-8">
+        {state.status === "idle" && <OverviewCards />}
         {state.status === "loading" && <LoadingPanel bookingId={state.bookingId} />}
         {state.status === "failure" && (
           <FailurePanel

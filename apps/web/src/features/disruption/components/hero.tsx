@@ -11,7 +11,8 @@ export function Hero({ children }: { children: ReactNode }) {
             id="hero-title"
             className="mt-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl"
           >
-            Tu viaje cambia. Tu tranquilidad no.
+            <span className="lg:block">Tu viaje cambia.</span>{" "}
+            <span className="text-soft lg:block">Tu tranquilidad no.</span>
           </h1>
           <p className="mt-4 max-w-xl text-lg text-slate-200">
             Consulta tu reserva y entiende en segundos qué pasó con tus vuelos, cómo afecta tu
