@@ -170,7 +170,12 @@ export function mapOptions(raw: unknown): AlternativeOption[] {
       ...(o.flightNumber ? { flightNumber: o.flightNumber } : {}),
       ...(o.origin ? { originCode: o.origin } : {}),
       ...(o.destination ? { destinationCode: o.destination } : {}),
-      ...(o.departure ? { departure: zonedInstant(o.departure, "options") } : {}),
+      ...(o.departure
+        ? {
+            departure: zonedInstant(o.departure, "options"),
+            departureTimeZone: o.departure.timeZone,
+          }
+        : {}),
       retrievedAt: instant(o.retrievedAt, "options"),
       ttlSeconds: o.ttlSeconds,
       seatsAvailable: o.seatsAvailable,

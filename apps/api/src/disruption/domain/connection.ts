@@ -23,6 +23,10 @@ export interface ConnectionAssessment {
   readonly originalConnectionMinutes: number;
   /** Arrival at the connection point; `confirmed: false` means an inference, not an operational fact. */
   readonly inboundArrival?: { readonly at: Instant; readonly confirmed: boolean };
+  readonly outboundDeparture?: {
+    readonly at: Instant;
+    readonly basis: "ACTUAL" | "ESTIMATED" | "SCHEDULED";
+  };
   readonly marginMinutes?: number;
 }
 
@@ -74,19 +78,23 @@ export function evaluateConnection(
     };
   }
 
-  const outboundDeparture =
-    actualDeparture ??
-    out.estimatedDeparture ??
-    (out.status === "DELAYED" && out.delayMinutes !== undefined
-      ? addMinutes(to.scheduledDeparture, out.delayMinutes)
-      : to.scheduledDeparture);
+  // Keep the basis of the comparison, even when an estimate coincides with the actual instant.
+  const outboundDeparture: NonNullable<ConnectionAssessment["outboundDeparture"]> =
+    actualDeparture !== undefined
+      ? { at: actualDeparture, basis: "ACTUAL" }
+      : out.estimatedDeparture !== undefined
+        ? { at: out.estimatedDeparture, basis: "ESTIMATED" }
+        : out.status === "DELAYED" && out.delayMinutes !== undefined
+          ? { at: addMinutes(to.scheduledDeparture, out.delayMinutes), basis: "ESTIMATED" }
+          : { at: to.scheduledDeparture, basis: "SCHEDULED" };
   const arrivalAt =
     actualArrival ??
     addMinutes(from.scheduledArrival, inb.status === "DELAYED" ? (inb.delayMinutes ?? 0) : 0);
-  const marginMinutes = minutesBetween(arrivalAt, outboundDeparture);
+  const marginMinutes = minutesBetween(arrivalAt, outboundDeparture.at);
   const evidence = {
     ...base,
     inboundArrival: { at: arrivalAt, confirmed: actualArrival !== undefined },
+    outboundDeparture,
     marginMinutes,
   };
 
