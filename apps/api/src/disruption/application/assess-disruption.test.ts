@@ -64,6 +64,14 @@ describe("ABC123 end to end (S6)", () => {
       estimatedDeparture: t("2026-09-15T17:10:00-03:00"),
     });
     expect(s2).toMatchObject({ segmentId: "S2", flightStatus: "SCHEDULED", severity: "NONE" });
+    // Scheduled facts travel with the assessment so presenters never need the booking again.
+    expect(s1).toMatchObject({
+      origin: { code: "SCL", timeZone: "America/Santiago" },
+      destination: { code: "LIM", timeZone: "America/Lima" },
+      scheduledDeparture: t("2026-09-15T14:30:00-03:00"),
+      scheduledArrival: t("2026-09-15T17:55:00-05:00"),
+    });
+    expect(s2).toMatchObject({ scheduledDeparture: t("2026-09-15T19:05:00-05:00") });
     expect(a.connection).toMatchObject({
       status: "AT_RISK",
       lossConfirmation: "NOT_CONFIRMED",

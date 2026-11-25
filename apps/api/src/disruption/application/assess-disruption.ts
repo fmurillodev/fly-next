@@ -62,6 +62,10 @@ export type DelayInfo =
 export interface SegmentAssessment {
   readonly segmentId: string;
   readonly flightNumber: string;
+  readonly origin: { readonly code: string; readonly timeZone: string };
+  readonly destination: { readonly code: string; readonly timeZone: string };
+  readonly scheduledDeparture: Instant;
+  readonly scheduledArrival: Instant;
   readonly flightStatus: FlightStatus;
   readonly severity: Severity;
   readonly delay: DelayInfo;
@@ -251,6 +255,10 @@ export function createAssessDisruption(deps: AssessDisruptionDeps) {
       return {
         segmentId: segment.id,
         flightNumber: segment.flightNumber,
+        origin: { code: segment.origin.code, timeZone: segment.origin.timeZone },
+        destination: { code: segment.destination.code, timeZone: segment.destination.timeZone },
+        scheduledDeparture: segment.scheduledDeparture,
+        scheduledArrival: segment.scheduledArrival,
         flightStatus: facts?.status ?? "UNKNOWN",
         severity,
         delay: delayOf(rec.status),
