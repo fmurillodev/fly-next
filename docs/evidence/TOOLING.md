@@ -90,6 +90,15 @@ Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm
 - **Not verified independently:** Hobby plan and pricing facts, service variables, absence of databases/volumes, image retention, absence of GitHub auto-deploy, and the commit SHA associated with the Railway deployment (the CLI shows ID and status only).
 - **Pending (non-blocking):** rate limiting and security headers (PR-04); pnpm "could not detect lockfile version" warning; real service cost not measured.
 
+## PR-03 (domain decision engine) — observed 2026-11-25
+
+- **Dependencies:** none added; `zod` (already pinned) is used only in `infrastructure/` mappers. `domain/` and `application/` import no framework (grep for `fastify|axios|react|pino|zod|node:` over both directories: no matches, tests excluded). No ambient clock (`Date.now`/`new Date()`): none in the new code.
+- **Context7 / external docs:** not consulted (no concrete need; `Intl.DateTimeFormat` `longOffset` is part of ECMA-402 and verified by tests against 2026-09-05/07 and 2026-09-15 offsets).
+- **Test-first evidence:** (1) core suites (`time`, `reconciliation`, `connection`, `classification`) written first: `4 failed | 1 passed` (modules missing), then `5 files / 57 tests` passed; (2) policy/alternatives/recommendation suites: `3 failed | 5 passed (8 files)`, then 4 failures from the first implementation (one real bug: reachability reported `NOT_REACHABLE` on top of `DEPARTED`; one test-helper bug that duplicated rule ids) fixed → `117 passed`; (3) use-case and mapper suites: `2 failed | 8 passed`, then `10 files / 155 tests` passed. RED here is "module does not exist" plus the 4 observed assertion failures; no artificial behavioral RED was staged for the other suites.
+- **Mutation check (one, manual):** changing the R1 threshold from 180 to 181 made `a confirmed 180-minute delay is APPLICABLE` fail (1 failed | 154 passed); reverted.
+- **Checks:** `pnpm check` exit 0 under Node v26.13.0 (the active shell version, not the pinned one) **and** under Node 24.15.0 (`nvm use`): lint, typecheck, 155 api + 2 contracts tests, build. `git diff --check` clean. `build:api`/`build:web` unaffected: the API entry (`server.ts`) does not import the domain yet, so the bundle is unchanged until PR-04.
+- **Not verified:** CI for this branch (nothing pushed); behavior under the real Railway runtime; the domain has not run behind HTTP.
+
 ## Pending evaluations
 
 - PR-01: trusted modern-TypeScript skill (provenance, license, version, content, compatibility).

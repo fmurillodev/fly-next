@@ -18,6 +18,11 @@ Records real AI-assisted decisions only. Human decisions are authoritative.
 | 12 | 2026-11-25 | Deployment | AI deployed commit `e7ffb2d` with `railway up` and verified `/health` | Maintainer authorized one project/service and the initial deploy | Public foundation deployed; merges and G2 pending maintainer |
 | 13 | 2026-11-25 | Verification | Independent verifier (`gentle-ai-verify`, Risk: item 5) passed items 1–5 and flagged claims it could not confirm; AI reported the gaps instead of claiming completion | Maintainer accepted PR-02 and the stated limits | Limits recorded in TOOLING.md |
 | 14 | 2026-11-25 | G2 integration | AI merged #1 then #2 with merge commits, retargeted #2 and re-ran CI by close/reopen | Maintainer authorized merges, kept Railway settings on the service, no IaC, manual deploys | `main` = `212247e`; deployed `e7ffb2d` unchanged |
+| 15 | 2026-11-25 | PR-03 domain engine design | AI designed the model (per-field authority, tri-state values, `ProviderResult` ports, use case as a function) and implemented it test-first | Maintainer authorized PR-03 and its principles (Ports & Adapters, no over-engineering, no HTTP route) | 155 tests green; design recorded in `ARCHITECTURE.md` and `DOMAIN-DECISIONS.md` (P1–P12) |
+| 16 | 2026-11-25 | R5 semantics | AI read "group includes a minor" together with the base case ("disruption context + minor") and made R5 require a disruption context | Pending maintainer validation (flagged P6) | Prevents a minor on a normal flight from triggering human review; revisit if Product disagrees |
+| 17 | 2026-11-25 | Connection safety without MCT | AI chose "any reduction of the booked connection time is AT_RISK" instead of inventing a threshold | Pending maintainer validation (flagged P5) | Conservative; Operations MCTs would relax it |
+| 18 | 2026-11-25 | Stale booking context | AI proposed an application error mapped to 502 `INVALID_UPSTREAM_RESPONSE` rather than a new public code | Pending G3 | In the DTO proposal as a question |
+| 19 | 2026-11-25 | Test quality | AI added a manual mutation check (R1 threshold) after the suites passed | Within PR-03 scope | The boundary test failed as expected; reverted |
 
 ## Rules applied
 
@@ -27,4 +32,5 @@ Records real AI-assisted decisions only. Human decisions are authoritative.
 
 ## Rejected or modified proposals
 
-None recorded yet.
+- PR-03: AI first drafted a generic "any minor ⇒ R5" reading; modified to require disruption context (P6, pending validation).
+- PR-03: AI considered returning `NOT_REACHABLE` together with `DEPARTED`; test-first exposed the noise and it was removed (departed options report only `DEPARTED`).

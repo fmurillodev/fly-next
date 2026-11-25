@@ -40,6 +40,8 @@ export interface AlternativeContext {
 export interface AlternativeEvaluation {
   readonly optionId: string;
   readonly kind: AlternativeOption["kind"];
+  readonly flightNumber?: string;
+  readonly departure?: Instant;
   readonly eligibility: Eligibility;
   readonly reasonCodes: readonly string[];
 }
@@ -87,7 +89,12 @@ function evaluateOption(option: AlternativeOption, ctx: AlternativeContext): Alt
     if (!ctx.rebookingAuthorized) pending.push("REBOOKING_NOT_AUTHORIZED_BY_POLICY");
   }
 
-  const base = { optionId: option.id, kind: option.kind };
+  const base = {
+    optionId: option.id,
+    kind: option.kind,
+    ...(option.flightNumber === undefined ? {} : { flightNumber: option.flightNumber }),
+    ...(option.departure === undefined ? {} : { departure: option.departure }),
+  };
   if (blocking.length > 0) return { ...base, eligibility: "NOT_ELIGIBLE", reasonCodes: blocking };
   if (review.length > 0)
     return { ...base, eligibility: "REQUIRES_REVIEW", reasonCodes: [...review, ...pending] };

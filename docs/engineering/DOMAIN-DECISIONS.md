@@ -116,3 +116,23 @@ Approved by the maintainer. They complete open points; D01–D10 are unchanged.
 ### Note on fixture realism
 
 Applying the A02 offsets literally, S1 departing 14:30 `-03:00` and arriving 17:55 `-05:00` implies a 5 h 25 min block time. This is a property of the synthetic base case, not a contradiction of D04: the 70-minute connection is both Lima-local. PR-03 will define fixtures with explicit offsets and tests must not depend on block-time realism.
+
+## PR-03 implementation decisions (within D01–D10, A01–A08)
+
+Choices made while implementing the approved decisions; none changes them. Flagged items need validation with Product/Operations.
+
+| # | Decision | Rationale |
+| --- | --- | --- |
+| P1 | Authority is resolved **per field** (flight status/times → OPS_CORE, gate → AIRPORT_FEED). A degraded source never grounds a decision; a secondary non-degraded source yields `SECONDARY_SOURCE` facts that are never "confirmed". | D02. |
+| P2 | Two freshness-eligible events from one source at the same timestamp with different facts, or a degraded primary contradicted by an operational secondary, are **unresolved** (`CONTRADICTION`). A stale contradicting event is ignored. | D02/D03. |
+| P3 | Freshness windows are inclusive: age equal to the window is fresh. | Explicit boundary, tested. |
+| P4 | `MISSED` requires a confirmed fact from a non-degraded primary source: actual arrival at or after the outbound departure, or a cancellation. Projections only produce `AT_RISK`. | D04. |
+| P5 | No Minimum Connection Time exists, so the booked connection time is the only reference: any reduction of it is `AT_RISK` (conservative). **[assumption]** Ops should provide MCTs to relax this. | D04. |
+| P6 | R5 evaluates to `REQUIRES_HUMAN_APPROVAL` only when the group includes a minor **and** the disruption severity is `WARNING`/`CRITICAL` ("disruption context + minor", base case). With no disruption it is `NOT_APPLICABLE`; with unknown severity `INSUFFICIENT_EVIDENCE`. | Keeps a minor on a normal flight from triggering human review (D07). |
+| P7 | A policy is valid from `validFrom` (inclusive) to `validUntil` (exclusive), must be `ACTIVE` and be `POL-DELAY-2026-03`; otherwise no rule is evaluated and the assessment is `PARTIAL`. Provider rules contribute only their ids: thresholds live in the engine. | D05. |
+| P8 | Alternatives: `ELIGIBLE` needs fresh data (TTL inclusive), seats ≥ group size, same final destination, confirmed reachability, known fare conditions with zero fare difference, high confidence and a no-fee rebooking benefit (R1/R3 `APPLICABLE`). Hard failures → `NOT_ELIGIBLE`; review conditions → `REQUIRES_REVIEW`; unconfirmed items → `PENDING_VALIDATION`. A refund always needs review. | D06. |
+| P9 | `INDETERMINATE` when aggregate severity is unknown; `PARTIAL` when the connection loss is unconfirmed, policy evidence is insufficient or unavailable, alternatives are unavailable or unvalidated, or facts rest on a secondary source. | D08/D10. |
+| P10 | A booking context older than 5 min is an application error (`STALE_BOOKING_CONTEXT`, proposed 502); the mock cannot refresh it. | D03/A06. |
+| P11 | Gate-change and airport-change classification (D01) are not implemented: V1 scenarios have a single gate fact and no baseline to detect a change. The gate is reported as a fact only. | "Implement only the events needed by V1 scenarios". |
+| P12 | DEMO06 flies early in the morning so its confirmed arrival precedes the simulation reference; S2 stays `SCHEDULED` (no `DEPARTED` state in `FlightStatus`). Synthetic simplification. | Fixed reference instant (A02). |
+
