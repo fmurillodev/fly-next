@@ -2,7 +2,7 @@
 
 FlyNext es un demo. Esta guía es el guion de la presentación; no hay diapositivas. Se apoya directamente en los entregables del repositorio.
 
-**Enlaces públicos:** [aplicación](https://flynext-api-production.up.railway.app) · [Swagger](https://flynext-api-production.up.railway.app/docs) · [repositorio](https://github.com/fmurillodev/fly-next) · [README](../README.md) · [evidencia técnica](TECHNICAL-EVIDENCE.md) · [AI Usage](AI-USAGE.md) · [diagramas](diagrams/README.md)
+**Enlaces públicos:** [aplicación](https://flynext-api-production.up.railway.app) · [Swagger](https://flynext-api-production.up.railway.app/docs) · [repositorio](https://github.com/fmurillodev/fly-next) · [README](../README.md) · [evidencia técnica](TECHNICAL-EVIDENCE.md) · [AI Usage](AI-USAGE.md) · [diagramas](diagrams/README.md) · [diagramas interactivos](https://fmurillodev.github.io/fly-next/)
 
 ## Preparación (antes de empezar)
 

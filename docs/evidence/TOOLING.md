@@ -172,3 +172,9 @@ Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm
 - **Railway:** no automatic deployment; latest deployment unchanged (`8ee89764-9b8e-4a2e-a157-19c86cc42b58`); `/health` 200; nothing deployed manually.
 - **GitHub rendering:** documents and SVGs return 200 from `main`; the compact SVG is served as `image/svg+xml` and referenced by the repository page. Visual rendering in a browser was not inspected.
 
+## PR-07 release preparation — observed 2026-11-25
+
+- **GitHub Pages:** native setup, `main` `/docs`, `docs/index.html` plus `.nojekyll`; reuses `docs/diagrams/html/`; URL <https://fmurillodev.github.io/fly-next/>. Verified by HTTP status only (gallery and four diagrams 200). Browser interactions, console, network and offline behavior of the diagrams remain unchecked.
+- **Public smoke:** ABC123, DEMO01, DEMO02 as documented; DEMO03, DEMO06 and an unknown booking return a sanitized 404; no executed actions; no load test.
+- **Local:** `pnpm check` 340 tests and `git diff --check` passed. No dependency or infrastructure change; Railway untouched.
+
