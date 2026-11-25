@@ -99,6 +99,13 @@ Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm
 - **Checks:** `pnpm check` exit 0 under Node v26.13.0 (the active shell version, not the pinned one) **and** under Node 24.15.0 (`nvm use`): lint, typecheck, 155 api + 2 contracts tests, build. `git diff --check` clean. `build:api`/`build:web` unaffected: the API entry (`server.ts`) does not import the domain yet, so the bundle is unchanged until PR-04.
 - **Not verified:** CI for this branch (nothing pushed); behavior under the real Railway runtime; the domain has not run behind HTTP.
 
+## PR-03 G3 refinement — observed 2026-11-25
+
+- **Native review (RDD):** consent `granted` by the maintainer for the 3.5k-line candidate (risk medium). One reliability-lens model run via the Pi host relay (about 48 s) returned `approved` with one non-blocking `WARNING`: future-dated timestamps pass as fresh (`time.ts`). Approval acknowledged and its authority burned. Review outcomes never authorize delivery.
+- **Test-first (P5, P13):** the new/rewritten tests failed first: `7 failed | 157 passed` (boundaries 69/70/71-minute delay, unconfirmed cancellation as evidence, confirmed-arrival cases, small delay end to end, future timestamps), then `163 passed` after the change; an obsolete expectation (secondary cancellation → `UNKNOWN`) contradicted the approved P5 and was removed. Scheduled facts on `SegmentAssessment`: 1 failed → `163 passed`.
+- **Checks:** `pnpm check` exit 0 and `git diff --check` clean after the code commits (Node v26.13.0 active shell). Structured fields of the DTO examples were cross-checked by running the engine for ABC123/DEMO01/DEMO02.
+- **Not verified:** the Spanish message texts have no composer or tests yet (PR-04); CI not run (nothing pushed).
+
 ## Pending evaluations
 
 - PR-01: trusted modern-TypeScript skill (provenance, license, version, content, compatibility).

@@ -214,16 +214,614 @@ Warning codes (closed catalogue, **Δ** answers open question 2): `SOURCE_CONFLI
 | `UPSTREAM_UNAVAILABLE` | 503 | `UPSTREAM_UNAVAILABLE` |
 | `UPSTREAM_TIMEOUT` | 504 | `UPSTREAM_TIMEOUT` |
 | `INVALID_UPSTREAM_RESPONSE` (booking) | 502 | `INVALID_UPSTREAM_RESPONSE` |
-| `STALE_BOOKING_CONTEXT` | 502 | `INVALID_UPSTREAM_RESPONSE` (**Δ** proposed: a booking older than 5 min prevents a safe assessment; no new public code) |
+| `STALE_BOOKING_CONTEXT` | 502 | `INVALID_UPSTREAM_RESPONSE` (approved at G3 review, P10: the specific reason `STALE_BOOKING_CONTEXT` is kept for internal diagnosis and logs only, never in the public body) |
 | events / policies / alternatives failure | 200 | degraded `INDETERMINATE` / `PARTIAL` (D10) |
 | any thrown exception | 500 | `INTERNAL_ERROR` (sanitized) |
 
 Request validation (400) and rate limiting (429) belong to the presentation layer in PR-04.
 
-### Open questions for G3 (with recommendation)
+### Open questions for G3 (status after the G3 refinement)
 
-1. `/health` mode/version: recommend **no** (keep `{ "status": "ok" }`).
-2. Eligibility enum and warning catalogue: as implemented above.
-3. Degraded sections: recommend explicit `available:false` / `status` objects, not omission.
-4. Time objects: recommend `local` + `timeZone` + `utc`.
-5. New: `STALE_BOOKING_CONTEXT` mapped to 502 `INVALID_UPSTREAM_RESPONSE`, acceptable?
+1. `/health` mode/version: recommend **no** (keep `{ "status": "ok" }`). Still open.
+2. Eligibility enum and warning catalogue: as implemented above. Still open.
+3. Degraded sections: explicit `available:false` / `status` objects. Still open.
+4. Time objects: `local` + `timeZone` + `utc`. Still open.
+5. `STALE_BOOKING_CONTEXT` → 502 `INVALID_UPSTREAM_RESPONSE` with the internal reason kept: **approved** (P10).
+
+Note on connection semantics after P5: `AT_RISK` needs a projected margin ≤ 0 or operational evidence of risk; a reduced but still positive margin without evidence is `UNKNOWN`; `SAFE` needs sufficient evidence; `MISSED` needs confirmation. `CONFIRMED_NOT_MISSED` appears only together with `SAFE` on a confirmed arrival.
+
+## Passenger communication (G3 refinement)
+
+Technical states and the text shown to the passenger are separate. Enums and reason codes exist for **programmatic decisions in the frontend** (styling, ordering, enabling actions); they are never rendered as UI text. Every section a passenger reads carries a `message` built from verified data.
+
+```ts
+interface PassengerMessage {
+  code: string;          // stable template id, e.g. CONNECTION_AT_RISK_PROJECTED_DELAY (variant-specific)
+  title: string;         // short, comprehensible
+  message: string;       // contextual explanation (facts, estimates and uncertainty kept apart)
+  nextSteps?: string[];  // actionable, only when there is something the passenger can do
+}
+```
+
+**Where it applies (evaluation):**
+
+| Section | `message` | Why |
+| --- | --- | --- |
+| `disruption.summary` and each `disruption.events[]` | yes | The passenger needs the headline and per-flight facts (delay, new time, gate). |
+| `connection` | yes | The highest-stress item; must separate confirmed facts from the projected arrival. |
+| `recommendation` | yes, with `nextSteps` | The only place that states benefits (conditionally) and what to do next. |
+| `alternatives.options[]` | yes | Each option needs its own plain explanation of what is and is not confirmed. |
+| `warnings[]` | yes (`title` + `message`, one sentence) | Cross-cutting caveats; never duplicated by a section that already says the same. |
+| `policies.evaluations[]` | **no** | Per-rule texts would read as promises (D07). Benefits are folded into the recommendation message with "sujeto a confirmación". |
+| `metadata.notice` | yes | Simulation label; historical data is never shown as real time (D03). |
+
+**Structured data stays alongside the text** so the UI can render times, delays, gates, options and conditions on its own: time objects (`local`, `timeZone`, `utc`), `delay`, `gate`, `inboundArrival`, `marginMinutes`, `originalConnectionMinutes`, `scheduledDeparture/Arrival`, `origin/destination`, `eligibility` and `reasonCodes`.
+
+**Principles for composing messages (language: Spanish, V1):**
+
+- Built dynamically from the assessment; nothing specific to ABC123 is hardcoded. A missing parameter drops its sentence; it never prints `undefined` or a placeholder.
+- Facts, estimates and uncertainty use different wording ("confirmado", "estimamos", "todavía no está verificado"). A projected arrival is always labelled as an estimate.
+- Never guarantee availability, no-fee changes, compensation or refunds; never claim an action was performed ("esto es una recomendación: no hemos realizado ninguna acción").
+- No internal enum names, reason codes, source names, contradiction details, minor/age data or counts of seats. The priority for a group with a minor is expressed as "atención prioritaria" (A05).
+- No LATAM branding; "un agente de la aerolínea".
+- No duplicated sentences between sections; tone informative, not alarmist (severity drives style in the UI, not exclamation in the text).
+- Times are rendered in the airport's own zone with its name ("17:10 (hora de Santiago)"); dates in short Spanish form.
+
+**Architecture (PR-04, not implemented now):** a `PassengerMessageComposer` in `apps/api/src/disruption/presentation/` takes the internal `DisruptionAssessment`, a locale (`"es"` only in V1) and returns the messages. Templates are deterministic functions in a per-locale catalog (`messages.es.ts`) keyed by `code`; a future `en` catalog only adds a file. The composer is part of the public-DTO mapper (allowlist); `domain/` and `application/` contain no presentation text and no LLM or i18n library is introduced. PR-04 tests: one test per template code, "no enum or code leaks into any title/message", "no guarantee wording outside negations", "output varies with input (different delay, flight, times)", and "no PII". Visual representation and accessibility belong to PR-05.
+
+**Template variants** (code identifies the variant): `CONNECTION_AT_RISK_PROJECTED_DELAY` (margin ≤ 0 from a delay), `CONNECTION_AT_RISK_CANCELLATION_REPORTED` (unconfirmed cancellation report), `CONNECTION_UNKNOWN` (positive margin, no evidence), `CONNECTION_SAFE`, `CONNECTION_MISSED_CONFIRMED`; `FLIGHT_DELAYED_CONFIRMED`, `FLIGHT_DELAYED_UNCONFIRMED`, `FLIGHT_CANCELLED`, `FLIGHT_ON_TIME`, `FLIGHT_ON_SCHEDULE`, `FLIGHT_STATUS_UNVERIFIED`; `DISRUPTION_NONE`, `DISRUPTION_INFO`, `DISRUPTION_RELEVANT`, `DISRUPTION_CRITICAL`, `DISRUPTION_UNDETERMINED`; `RECOMMENDATION_NO_ACTION`, `RECOMMENDATION_MONITOR`, `RECOMMENDATION_REVIEW_OPTIONS`, `RECOMMENDATION_HUMAN_REVIEW`; `OPTION_ELIGIBLE`, `OPTION_PENDING_VALIDATION`, `OPTION_NOT_ELIGIBLE_*`, `OPTION_REQUIRES_REVIEW`, `OPTION_REFUND_REQUIRES_REVIEW`; `SIMULATION_MODE`.
+
+### Complete DTO examples (proposal)
+
+Structured fields (statuses, minutes, instants, option eligibility, reason codes, warnings) were cross-checked against the actual output of the implemented engine for these three fixtures. The Spanish `title`/`message`/`nextSteps` texts are the proposed templates rendered by hand: no composer exists yet (PR-04).
+
+Policies are shown with the five evaluations in order R1–R5. `decisionTrace` is never part of the DTO.
+
+#### ABC123
+
+```json
+{
+  "requestId": "req_01",
+  "assessmentStatus": "PARTIAL",
+  "disruption": {
+    "severity": "CRITICAL",
+    "summary": {
+      "code": "DISRUPTION_CRITICAL",
+      "title": "Tu viaje tiene una alteración importante",
+      "message": "Tu vuelo LA500 tiene un retraso confirmado y tu conexión está en riesgo. Parte de la información todavía no está verificada."
+    },
+    "events": [
+      {
+        "segmentId": "S1",
+        "flightNumber": "LA500",
+        "origin": {
+          "code": "SCL",
+          "timeZone": "America/Santiago"
+        },
+        "destination": {
+          "code": "LIM",
+          "timeZone": "America/Lima"
+        },
+        "scheduledDeparture": {
+          "local": "2026-09-15T14:30:00-03:00",
+          "timeZone": "America/Santiago",
+          "utc": "2026-09-15T17:30:00Z"
+        },
+        "scheduledArrival": {
+          "local": "2026-09-15T17:55:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-15T22:55:00Z"
+        },
+        "flightStatus": "DELAYED",
+        "severity": "WARNING",
+        "delay": {
+          "status": "CONFIRMED",
+          "minutes": 160
+        },
+        "estimatedDeparture": {
+          "local": "2026-09-15T17:10:00-03:00",
+          "timeZone": "America/Santiago",
+          "utc": "2026-09-15T20:10:00Z"
+        },
+        "gate": {
+          "status": "KNOWN",
+          "value": "24"
+        },
+        "message": {
+          "code": "FLIGHT_DELAYED_CONFIRMED",
+          "title": "Tu vuelo LA500 está retrasado",
+          "message": "El vuelo LA500 sale con 160 minutos de retraso. Su nueva hora estimada de salida es las 17:10 (hora de Santiago). Puerta de embarque: 24."
+        }
+      },
+      {
+        "segmentId": "S2",
+        "flightNumber": "LA2410",
+        "origin": {
+          "code": "LIM",
+          "timeZone": "America/Lima"
+        },
+        "destination": {
+          "code": "MEX",
+          "timeZone": "America/Mexico_City"
+        },
+        "scheduledDeparture": {
+          "local": "2026-09-15T19:05:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-16T00:05:00Z"
+        },
+        "scheduledArrival": {
+          "local": "2026-09-15T23:40:00-06:00",
+          "timeZone": "America/Mexico_City",
+          "utc": "2026-09-16T05:40:00Z"
+        },
+        "flightStatus": "SCHEDULED",
+        "severity": "NONE",
+        "delay": {
+          "status": "NOT_DELAYED"
+        },
+        "gate": {
+          "status": "UNKNOWN",
+          "reason": "UNAVAILABLE"
+        },
+        "message": {
+          "code": "FLIGHT_ON_SCHEDULE",
+          "title": "Tu vuelo LA2410 sigue programado",
+          "message": "Por ahora no hay cambios informados para el vuelo LA2410. La puerta de embarque todavía no está publicada."
+        }
+      }
+    ]
+  },
+  "connection": {
+    "status": "AT_RISK",
+    "lossConfirmation": "NOT_CONFIRMED",
+    "originalConnectionMinutes": 70,
+    "inboundArrival": {
+      "time": {
+        "local": "2026-09-15T20:35:00-05:00",
+        "timeZone": "America/Lima",
+        "utc": "2026-09-16T01:35:00Z"
+      },
+      "confirmed": false
+    },
+    "marginMinutes": -90,
+    "message": {
+      "code": "CONNECTION_AT_RISK_PROJECTED_DELAY",
+      "title": "Tu conexión podría verse afectada",
+      "message": "Tu vuelo LA500 presenta un retraso de 160 minutos. Tenías 70 minutos para conectar con tu siguiente vuelo. Debido al retraso, existe el riesgo de que no llegues a tiempo. Estimamos tu llegada a las 20:35 (hora de Lima), pero es una estimación, no una llegada confirmada. El vuelo LA2410 sale a las 19:05 (hora de Lima).",
+      "nextSteps": [
+        "Al aterrizar, consulta tu puerta de conexión en las pantallas del aeropuerto.",
+        "Habla con un agente de la aerolínea sobre las opciones para tu itinerario."
+      ]
+    }
+  },
+  "policies": {
+    "available": true,
+    "policyId": "POL-DELAY-2026-03",
+    "version": "2026.03",
+    "validity": "VALID",
+    "evaluations": [
+      {
+        "rule": "R1",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R2",
+        "benefit": "MEAL_VOUCHER",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R3",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "INSUFFICIENT_EVIDENCE"
+      },
+      {
+        "rule": "R4",
+        "benefit": "CASH_COMPENSATION",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R5",
+        "benefit": "PRIORITY_HANDLING",
+        "status": "REQUIRES_HUMAN_APPROVAL"
+      }
+    ]
+  },
+  "recommendation": {
+    "type": "HUMAN_REVIEW",
+    "priority": "HIGH",
+    "reasonCodes": [
+      "CONNECTION_AT_RISK",
+      "PRIORITY_REVIEW_REQUIRED",
+      "INCOMPLETE_FARE_CONDITIONS"
+    ],
+    "message": {
+      "code": "RECOMMENDATION_HUMAN_REVIEW",
+      "title": "Te recomendamos revisar tu itinerario con un agente",
+      "message": "Tu itinerario requiere atención prioritaria. Todavía no podemos confirmar si llegarás a tu conexión ni las condiciones de cambio de tu tarifa, por eso no podemos garantizar un cambio sin costo ni una compensación. Esto es una recomendación: no hemos realizado ninguna acción por ti.",
+      "nextSteps": [
+        "Acércate a un agente de la aerolínea en el aeropuerto o por sus canales de atención e indica tu código de reserva.",
+        "Ten a mano tus documentos de viaje."
+      ]
+    }
+  },
+  "alternatives": {
+    "status": "EVALUATED",
+    "options": [
+      {
+        "optionId": "O1",
+        "kind": "FLIGHT",
+        "flightNumber": "LA2412",
+        "departure": {
+          "local": "2026-09-16T08:15:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-16T13:15:00Z"
+        },
+        "eligibility": "PENDING_VALIDATION",
+        "reasonCodes": [
+          "REACHABILITY_UNCONFIRMED",
+          "FARE_CONDITIONS_INCOMPLETE",
+          "REBOOKING_NOT_AUTHORIZED_BY_POLICY"
+        ],
+        "message": {
+          "code": "OPTION_PENDING_VALIDATION",
+          "title": "Vuelo LA2412 · 16 sep, 08:15 (hora de Lima)",
+          "message": "Es una posibilidad, pero todavía no está validada: no está confirmado que llegues a tiempo, se desconocen las condiciones de cambio de tu tarifa y el cambio sin costo no está autorizado. Un agente debe revisarla. Esta opción no está reservada ni garantizada."
+        }
+      },
+      {
+        "optionId": "O2",
+        "kind": "FLIGHT",
+        "flightNumber": "LA2450",
+        "departure": {
+          "local": "2026-09-15T23:40:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-16T04:40:00Z"
+        },
+        "eligibility": "NOT_ELIGIBLE",
+        "reasonCodes": [
+          "INSUFFICIENT_SEATS_FOR_GROUP"
+        ],
+        "message": {
+          "code": "OPTION_NOT_ELIGIBLE_SEATS",
+          "title": "Vuelo LA2450 · 15 sep, 23:40 (hora de Lima)",
+          "message": "Este vuelo no tiene asientos suficientes para todo tu grupo y no separamos a los pasajeros automáticamente."
+        }
+      },
+      {
+        "optionId": "O3",
+        "kind": "REFUND",
+        "eligibility": "REQUIRES_REVIEW",
+        "reasonCodes": [
+          "REFUND_REQUIRES_REVIEW",
+          "LOW_CONFIDENCE"
+        ],
+        "message": {
+          "code": "OPTION_REFUND_REQUIRES_REVIEW",
+          "title": "Reembolso",
+          "message": "El reembolso es una posibilidad que requiere revisión. La información disponible es poco confiable y no podemos asegurar que se otorgue."
+        }
+      }
+    ]
+  },
+  "actions": {
+    "executed": [],
+    "recommended": [
+      "HUMAN_REVIEW"
+    ]
+  },
+  "warnings": [
+    {
+      "code": "SOURCE_CONFLICT_RESOLVED",
+      "title": "Datos contrastados",
+      "message": "Algunos datos operativos se verificaron con la fuente más confiable disponible."
+    },
+    {
+      "code": "FARE_CONDITIONS_INCOMPLETE",
+      "title": "Condiciones de tarifa incompletas",
+      "message": "No conocemos la penalidad por cambio de tu tarifa, por lo que no se garantiza un cambio sin costo."
+    }
+  ],
+  "metadata": {
+    "assessedAt": "2026-09-15T11:02:40Z",
+    "mode": "SIMULATION",
+    "dataSnapshot": "historical-fixture",
+    "locale": "es",
+    "policyRefs": [
+      {
+        "id": "POL-DELAY-2026-03",
+        "version": "2026.03"
+      }
+    ],
+    "notice": {
+      "code": "SIMULATION_MODE",
+      "title": "Datos de demostración",
+      "message": "Esta evaluación usa datos sintéticos históricos y no refleja información operacional en tiempo real."
+    }
+  }
+}
+```
+
+#### DEMO01
+
+```json
+{
+  "requestId": "req_02",
+  "assessmentStatus": "COMPLETE",
+  "disruption": {
+    "severity": "NONE",
+    "summary": {
+      "code": "DISRUPTION_NONE",
+      "title": "Tu viaje no presenta alteraciones",
+      "message": "No hay alteraciones verificadas en tu viaje."
+    },
+    "events": [
+      {
+        "segmentId": "DEMO01-S1",
+        "flightNumber": "LA501",
+        "origin": {
+          "code": "SCL",
+          "timeZone": "America/Santiago"
+        },
+        "destination": {
+          "code": "LIM",
+          "timeZone": "America/Lima"
+        },
+        "scheduledDeparture": {
+          "local": "2026-09-15T14:30:00-03:00",
+          "timeZone": "America/Santiago",
+          "utc": "2026-09-15T17:30:00Z"
+        },
+        "scheduledArrival": {
+          "local": "2026-09-15T17:55:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-15T22:55:00Z"
+        },
+        "flightStatus": "ON_TIME",
+        "severity": "NONE",
+        "delay": {
+          "status": "NOT_DELAYED"
+        },
+        "gate": {
+          "status": "UNKNOWN",
+          "reason": "UNAVAILABLE"
+        },
+        "message": {
+          "code": "FLIGHT_ON_TIME",
+          "title": "Tu vuelo LA501 está en horario",
+          "message": "No hay retrasos informados para el vuelo LA501. La puerta de embarque todavía no está publicada."
+        }
+      }
+    ]
+  },
+  "connection": null,
+  "policies": {
+    "available": true,
+    "policyId": "POL-DELAY-2026-03",
+    "version": "2026.03",
+    "validity": "VALID",
+    "evaluations": [
+      {
+        "rule": "R1",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R2",
+        "benefit": "MEAL_VOUCHER",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R3",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R4",
+        "benefit": "CASH_COMPENSATION",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R5",
+        "benefit": "PRIORITY_HANDLING",
+        "status": "NOT_APPLICABLE"
+      }
+    ]
+  },
+  "recommendation": {
+    "type": "NO_ACTION_REQUIRED",
+    "priority": "LOW",
+    "reasonCodes": [],
+    "message": {
+      "code": "RECOMMENDATION_NO_ACTION",
+      "title": "No necesitas hacer nada por ahora",
+      "message": "Tu vuelo está en horario según la información verificada.",
+      "nextSteps": [
+        "Revisa el estado de tu vuelo antes de salir al aeropuerto: la información puede cambiar."
+      ]
+    }
+  },
+  "alternatives": {
+    "status": "NOT_REQUIRED"
+  },
+  "actions": {
+    "executed": [],
+    "recommended": [
+      "NO_ACTION_REQUIRED"
+    ]
+  },
+  "warnings": [],
+  "metadata": {
+    "assessedAt": "2026-09-15T11:02:40Z",
+    "mode": "SIMULATION",
+    "dataSnapshot": "historical-fixture",
+    "locale": "es",
+    "policyRefs": [
+      {
+        "id": "POL-DELAY-2026-03",
+        "version": "2026.03"
+      }
+    ],
+    "notice": {
+      "code": "SIMULATION_MODE",
+      "title": "Datos de demostración",
+      "message": "Esta evaluación usa datos sintéticos históricos y no refleja información operacional en tiempo real."
+    }
+  }
+}
+```
+
+#### DEMO02
+
+```json
+{
+  "requestId": "req_03",
+  "assessmentStatus": "COMPLETE",
+  "disruption": {
+    "severity": "WARNING",
+    "summary": {
+      "code": "DISRUPTION_RELEVANT",
+      "title": "Tu vuelo tiene un retraso importante",
+      "message": "Tu vuelo LA502 tiene un retraso confirmado de 190 minutos."
+    },
+    "events": [
+      {
+        "segmentId": "DEMO02-S1",
+        "flightNumber": "LA502",
+        "origin": {
+          "code": "SCL",
+          "timeZone": "America/Santiago"
+        },
+        "destination": {
+          "code": "LIM",
+          "timeZone": "America/Lima"
+        },
+        "scheduledDeparture": {
+          "local": "2026-09-15T14:30:00-03:00",
+          "timeZone": "America/Santiago",
+          "utc": "2026-09-15T17:30:00Z"
+        },
+        "scheduledArrival": {
+          "local": "2026-09-15T17:55:00-05:00",
+          "timeZone": "America/Lima",
+          "utc": "2026-09-15T22:55:00Z"
+        },
+        "flightStatus": "DELAYED",
+        "severity": "WARNING",
+        "delay": {
+          "status": "CONFIRMED",
+          "minutes": 190
+        },
+        "estimatedDeparture": {
+          "local": "2026-09-15T17:40:00-03:00",
+          "timeZone": "America/Santiago",
+          "utc": "2026-09-15T20:40:00Z"
+        },
+        "gate": {
+          "status": "UNKNOWN",
+          "reason": "UNAVAILABLE"
+        },
+        "message": {
+          "code": "FLIGHT_DELAYED_CONFIRMED",
+          "title": "Tu vuelo LA502 está retrasado",
+          "message": "El vuelo LA502 sale con 190 minutos de retraso. Su nueva hora estimada de salida es las 17:40 (hora de Santiago). La puerta de embarque todavía no está publicada."
+        }
+      }
+    ]
+  },
+  "connection": null,
+  "policies": {
+    "available": true,
+    "policyId": "POL-DELAY-2026-03",
+    "version": "2026.03",
+    "validity": "VALID",
+    "evaluations": [
+      {
+        "rule": "R1",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "APPLICABLE"
+      },
+      {
+        "rule": "R2",
+        "benefit": "MEAL_VOUCHER",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R3",
+        "benefit": "REBOOK_NO_FEE",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R4",
+        "benefit": "CASH_COMPENSATION",
+        "status": "NOT_APPLICABLE"
+      },
+      {
+        "rule": "R5",
+        "benefit": "PRIORITY_HANDLING",
+        "status": "NOT_APPLICABLE"
+      }
+    ]
+  },
+  "recommendation": {
+    "type": "REVIEW_REBOOKING_OPTIONS",
+    "priority": "NORMAL",
+    "reasonCodes": [],
+    "message": {
+      "code": "RECOMMENDATION_REVIEW_OPTIONS",
+      "title": "Revisa tus opciones de cambio de vuelo",
+      "message": "Con un retraso de 190 minutos, la política aplicable contempla un cambio de vuelo sin penalidad, sujeto a la confirmación de un agente. Encontramos una opción que cumple las condiciones verificadas. Esto es una recomendación: no hemos modificado tu reserva.",
+      "nextSteps": [
+        "Revisa la opción propuesta.",
+        "Confirma el cambio con un agente de la aerolínea."
+      ]
+    }
+  },
+  "alternatives": {
+    "status": "EVALUATED",
+    "options": [
+      {
+        "optionId": "DEMO02-O1",
+        "kind": "FLIGHT",
+        "flightNumber": "LA1001",
+        "departure": {
+          "local": "2026-09-15T20:30:00-03:00",
+          "timeZone": "America/Santiago",
+          "utc": "2026-09-15T23:30:00Z"
+        },
+        "eligibility": "ELIGIBLE",
+        "reasonCodes": [],
+        "message": {
+          "code": "OPTION_ELIGIBLE",
+          "title": "Vuelo LA1001 · 15 sep, 20:30 (hora de Santiago)",
+          "message": "Esta opción cumple las condiciones verificadas: hay asientos para todo tu grupo y la información está vigente. Aún no está reservada: un agente debe confirmar el cambio."
+        }
+      }
+    ]
+  },
+  "actions": {
+    "executed": [],
+    "recommended": [
+      "REVIEW_REBOOKING_OPTIONS"
+    ]
+  },
+  "warnings": [],
+  "metadata": {
+    "assessedAt": "2026-09-15T11:02:40Z",
+    "mode": "SIMULATION",
+    "dataSnapshot": "historical-fixture",
+    "locale": "es",
+    "policyRefs": [
+      {
+        "id": "POL-DELAY-2026-03",
+        "version": "2026.03"
+      }
+    ],
+    "notice": {
+      "code": "SIMULATION_MODE",
+      "title": "Datos de demostración",
+      "message": "Esta evaluación usa datos sintéticos históricos y no refleja información operacional en tiempo real."
+    }
+  }
+}
+```
