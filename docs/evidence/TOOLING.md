@@ -81,6 +81,15 @@ Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm
 - **Smoke test (curl, public HTTPS):** `GET /health` → `HTTP/2 200 {"status":"ok"}`; unknown route → 404 JSON without stack trace; `http://` → 301 to `https://`. Railway's health check request (`healthcheck.railway.app`) returned 200 in the deploy log and the deployment became `SUCCESS`.
 - **Not verified:** a pushed-branch CI run for the PR-02 branch; the exact cost incurred.
 
+## G2 closure — observed 2026-11-25
+
+- **Integration (merge commits, no squash/rebase):** PR #1 → `9de804b`; PR #2 retargeted to `main` (its diff held only `e7ffb2d` and `44b0d91`, 5 files) and merged → `212247e`. Branches were not deleted.
+- **CI:** PR #1 head `87f9624` success (run 45665610724); PR #2 on the new base, head `44b0d91`, success (run 45667467835, started by closing/reopening the PR because a base change does not trigger CI); `main` push runs: `9de804b` success (45667365486), `212247e` success (45667589557).
+- **Deployed vs main:** deployed SHA `e7ffb2d`; `main` is `212247e`. `git diff e7ffb2d origin/main` outside `docs/` and `odd/` is empty, so no redeploy was needed.
+- **Final smoke:** `GET https://flynext-api-production.up.railway.app/health` → `HTTP/2 200 {"status":"ok"}`; latest deployment `8e462997-…` `SUCCESS`; the deploy log holds one "runtime ready" line.
+- **Not verified independently:** Hobby plan and pricing facts, service variables, absence of databases/volumes, image retention, absence of GitHub auto-deploy, and the commit SHA associated with the Railway deployment (the CLI shows ID and status only).
+- **Pending (non-blocking):** rate limiting and security headers (PR-04); pnpm "could not detect lockfile version" warning; real service cost not measured.
+
 ## Pending evaluations
 
 - PR-01: trusted modern-TypeScript skill (provenance, license, version, content, compatibility).

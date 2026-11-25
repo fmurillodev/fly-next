@@ -16,6 +16,8 @@ Records real AI-assisted decisions only. Human decisions are authoritative.
 | 10 | 2026-11-25 | Publication | AI audited history/tracked files and proposed publishing | Maintainer authorized a public repo, push and PR #1 | Published; CI green on `87f9624` |
 | 11 | 2026-11-25 | Railway config mechanism | AI first added `railway.json`; after the CLI deprecation warning and docs check it removed the file and configured the service directly | Within the authorized scope (no extra dependency for IaC) | Recorded in ARCHITECTURE.md |
 | 12 | 2026-11-25 | Deployment | AI deployed commit `e7ffb2d` with `railway up` and verified `/health` | Maintainer authorized one project/service and the initial deploy | Public foundation deployed; merges and G2 pending maintainer |
+| 13 | 2026-11-25 | Verification | Independent verifier (`gentle-ai-verify`, Risk: item 5) passed items 1–5 and flagged claims it could not confirm; AI reported the gaps instead of claiming completion | Maintainer accepted PR-02 and the stated limits | Limits recorded in TOOLING.md |
+| 14 | 2026-11-25 | G2 integration | AI merged #1 then #2 with merge commits, retargeted #2 and re-ran CI by close/reopen | Maintainer authorized merges, kept Railway settings on the service, no IaC, manual deploys | `main` = `212247e`; deployed `e7ffb2d` unchanged |
 
 ## Rules applied
 
