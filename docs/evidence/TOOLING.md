@@ -110,3 +110,15 @@ Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm
 
 - PR-01: trusted modern-TypeScript skill (provenance, license, version, content, compatibility).
 - PR-05: GoogleChrome modern-web-guidance (not installed; provenance/version/privacy/registry checks first), frontend-design, web-design-guidelines, vercel-react-best-practices, Tailwind CSS v4 skill, Playwright MCP.
+
+## PR-04 local API verification — observed 2026-11-25
+
+
+
+- Node 24.15.0 via nvm and pnpm 12.16.1. Preflight: 173 API and 2 contract tests on the approved main SHA. Final: frozen install, pnpm check (259 API and 50 contracts), independent API and web builds, and git diff --check passed.
+
+- Fastify injection exercised strict requests, prior health behavior, normalized errors, provider degradation, correlation, logging privacy, rate limiting, and Swagger. Independent pre/post probes verified the three validation corrections and confirmed departure copy.
+
+- Local TCP smoke verified the built server, all three public fixtures against Zod and the documented examples, Swagger UI and JSON, 400 and 404 problem bodies, Pino records, and Vite forwarding. Swagger was fetched in the smoke; no manual browser interaction was performed.
+
+- Official Swagger compatibility tables confirmed Fastify 5 support; pinned @fastify/swagger 9.9.5 and @fastify/swagger-ui 5.2.6. No runtime Axios client, tool upgrade, external observability system, or Railway deployment. G4 remains open.

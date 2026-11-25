@@ -189,6 +189,22 @@ interface PassengerMessage {
 
 **Template variants** (code identifies the variant): `CONNECTION_AT_RISK_PROJECTED_DELAY` (margin ≤ 0 from a delay), `CONNECTION_AT_RISK_CANCELLATION_REPORTED` (unconfirmed cancellation report), `CONNECTION_UNKNOWN` (positive margin, no evidence), `CONNECTION_SAFE`, `CONNECTION_MISSED_CONFIRMED`; `FLIGHT_DELAYED_CONFIRMED`, `FLIGHT_DELAYED_UNCONFIRMED`, `FLIGHT_CANCELLED`, `FLIGHT_ON_TIME`, `FLIGHT_ON_SCHEDULE`, `FLIGHT_STATUS_UNVERIFIED`; `DISRUPTION_NONE`, `DISRUPTION_INFO`, `DISRUPTION_RELEVANT`, `DISRUPTION_CRITICAL`, `DISRUPTION_UNDETERMINED`; `RECOMMENDATION_NO_ACTION`, `RECOMMENDATION_MONITOR`, `RECOMMENDATION_REVIEW_OPTIONS`, `RECOMMENDATION_HUMAN_REVIEW`; `OPTION_ELIGIBLE`, `OPTION_PENDING_VALIDATION`, `OPTION_NOT_ELIGIBLE_*`, `OPTION_REQUIRES_REVIEW`, `OPTION_REFUND_REQUIRES_REVIEW`; `SIMULATION_MODE`.
 
+### Post-deploy smoke check
+
+Run this only after a separately authorized Railway deployment. Use `BASE_URL=http://127.0.0.1:3000` for the local equivalent.
+
+```sh
+BASE_URL=https://flynext-api-production.up.railway.app
+curl -fsS "${BASE_URL}/health"               # 200; {"status":"ok"}
+curl -fsSL "${BASE_URL}/docs" -o /dev/null    # 200; Swagger UI
+endpoint="$BASE_URL/api/v1/disruptions/assessment"
+curl -sS -i -H 'Content-Type: application/json' --data '{"bookingId":"ABC123"}' "$endpoint"  # 200; PARTIAL
+curl -sS -i -H 'Content-Type: application/json' --data '{"bookingId":123}' "$endpoint"       # 400; INVALID_REQUEST
+curl -sS -i -H 'Content-Type: application/json' --data '{"bookingId":"UNKNOWN"}' "$endpoint" # 404; BOOKING_NOT_FOUND
+```
+
+Check that the assessment declares `SIMULATION` and has no executed actions, both errors use `application/problem+json`, and the `X-Request-Id` header matches the body on each POST. Railway remains responsible for HTTPS and the injected `PORT`; retain `HOST=0.0.0.0`, `pnpm build`, `pnpm start`, and `/health`. See [Observability](OBSERVABILITY.md) for log configuration and the direct-peer rate limit behind a reverse proxy.
+
 ### Complete DTO examples
 
 These are approved wire examples for the three public synthetic fixtures. They illustrate the Spanish `title`, `message` and optional `nextSteps` fields. The composer generates text dynamically from the assessment; the frontend never constructs business messages from enums.
