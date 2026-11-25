@@ -2,7 +2,7 @@
 
 *Your journey. Your next step.*
 
-Asistente de disrupciones de viaje que transforma información operacional en recomendaciones claras, verificables y seguras para el pasajero. **FlyNext es un demo con datos sintéticos.** [Repositorio](https://github.com/fmurillodev/fly-next) · [Aplicación](https://flynext-api-production.up.railway.app) · [Swagger](https://flynext-api-production.up.railway.app/docs)
+Asistente de disrupciones de viaje que transforma información operacional en recomendaciones claras, verificables y seguras para el pasajero. **FlyNext es un demo con datos sintéticos.** [Repositorio](https://github.com/fmurillodev/fly-next) · [Aplicación](https://flynext-api-production.up.railway.app) · [Swagger](https://flynext-api-production.up.railway.app/docs) · [Diagramas interactivos](https://fmurillodev.github.io/fly-next/)
 
 ## 1. Problema, resultado y alcance
 

@@ -1,6 +1,6 @@
 # FlyNext — Galería de diagramas
 
-FlyNext es un demo. Los cuatro diagramas se basan en el código real (`apps/api`, `apps/web`, `packages/contracts`). Cada uno tiene una imagen SVG que GitHub muestra directamente, una versión HTML interactiva para explorar en local y su fuente regenerable.
+FlyNext es un demo. Los cuatro diagramas se basan en el código real (`apps/api`, `apps/web`, `packages/contracts`). Los HTML interactivos también se pueden abrir en línea desde la [galería interactiva](https://fmurillodev.github.io/fly-next/). Cada uno tiene una imagen SVG que GitHub muestra directamente, una versión HTML interactiva para explorar en local y su fuente regenerable.
 
 | # | Diagrama | SVG | HTML (local) | Fuente |
 | --- | --- | --- | --- | --- |
@@ -48,4 +48,4 @@ node .agents/skills/archify/bin/archify.mjs finalize architecture docs/diagrams/
 node .agents/skills/archify/bin/archify.mjs export-svg architecture docs/diagrams/source/01-arquitectura.architecture.json docs/diagrams/svg/01-arquitectura --theme light
 ```
 
-El HTML interactivo se abre en el navegador desde el disco; GitHub no lo ejecuta, por eso el SVG es la vista principal. El tipo de diagrama de cada fuente está en su nombre (`architecture`, `sequence`, `workflow`).
+Los HTML interactivos se publican con GitHub Pages en la [galería interactiva](https://fmurillodev.github.io/fly-next/); GitHub no los ejecuta dentro del repositorio, por eso el SVG es la vista principal en GitHub. El tipo de diagrama de cada fuente está en su nombre (`architecture`, `sequence`, `workflow`).

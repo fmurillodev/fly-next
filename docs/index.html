@@ -1,41 +1,134 @@
 <!doctype html>
 <html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FlyNext — Arquitectura y decisiones de ingeniería</title>
-<style>
-  :root{color-scheme:dark}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:#0b1120;color:#e2e8f0;line-height:1.55}
-  main{max-width:880px;margin:0 auto;padding:48px 20px 32px}
-  .brand{font-weight:800;font-size:1.1rem;letter-spacing:.02em;color:#fff}
-  .tag{color:#a5b4fc;font-style:italic;margin:2px 0 32px}
-  h1{font-size:2rem;line-height:1.2;margin:0 0 12px;color:#fff}
-  h1 span{color:#a5b4fc}
-  p{margin:0 0 16px;color:#cbd5e1}
-  ul{list-style:none;margin:24px 0;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-  a.card{display:block;padding:16px 18px;border:1px solid #334155;border-radius:12px;background:#111a2e;text-decoration:none;color:#fff}
-  a.card:hover,a.card:focus-visible{border-color:#6366f1;outline:2px solid #a5b4fc;outline-offset:2px}
-  a.card b{display:block;margin-bottom:4px}
-  a.card small{color:#94a3b8}
-  .links a{color:#a5b4fc;margin-right:16px}
-  footer{margin-top:40px;color:#94a3b8;font-size:.9rem}
-</style>
-</head>
-<body>
-<main>
-  <div class="brand">FlyNext</div>
-  <p class="tag">Your journey. Your next step.</p>
-  <h1>Arquitectura y <span>decisiones de ingeniería</span></h1>
-  <p>Cuatro diagramas interactivos que explican cómo FlyNext transforma información operacional en recomendaciones claras, verificables y seguras. Cada diagrama se abre en el navegador y funciona por sí solo. Todos los datos son sintéticos.</p>
-  <ul>
-    <li><a class="card" href="diagrams/html/01-arquitectura.html"><b>1. Arquitectura del sistema</b><small>Navegador, API Fastify, dominio y despliegue único.</small></a></li>
-    <li><a class="card" href="diagrams/html/02-secuencia.html"><b>2. Secuencia de evaluación</b><small>Qué ocurre, paso a paso, con cada consulta.</small></a></li>
-    <li><a class="card" href="diagrams/html/03-decisiones.html"><b>3. Flujo de decisiones</b><small>Fuentes, frescura, conexión, políticas y recomendación.</small></a></li>
-    <li><a class="card" href="diagrams/html/04-limites-ia.html"><b>4. Límites de IA y control humano</b><small>Lo implementado frente a lo propuesto.</small></a></li>
-  </ul>
-  <p class="links"><a href="https://github.com/fmurillodev/fly-next">Repositorio</a><a href="https://flynext-api-production.up.railway.app">Aplicación pública</a></p>
-  <footer>FlyNext es un demo. Diagramas generados con Archify (Apache-2.0); sus avisos de licencia se conservan en cada archivo.</footer>
-</main>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FlyNext — Arquitectura y decisiones de ingeniería</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        background: #0b1120;
+        color: #e2e8f0;
+        line-height: 1.55;
+      }
+      main {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 48px 20px 32px;
+      }
+      .brand {
+        font-weight: 800;
+        font-size: 1.1rem;
+        letter-spacing: 0.02em;
+        color: #fff;
+      }
+      .tag {
+        color: #a5b4fc;
+        font-style: italic;
+        margin: 2px 0 32px;
+      }
+      h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+        margin: 0 0 12px;
+        color: #fff;
+      }
+      h1 span {
+        color: #a5b4fc;
+      }
+      p {
+        margin: 0 0 16px;
+        color: #cbd5e1;
+      }
+      ul {
+        list-style: none;
+        margin: 24px 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      a.card {
+        display: block;
+        padding: 16px 18px;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        background: #111a2e;
+        text-decoration: none;
+        color: #fff;
+      }
+      a.card:hover,
+      a.card:focus-visible {
+        border-color: #6366f1;
+        outline: 2px solid #a5b4fc;
+        outline-offset: 2px;
+      }
+      a.card b {
+        display: block;
+        margin-bottom: 4px;
+      }
+      a.card small {
+        color: #94a3b8;
+      }
+      .links a {
+        color: #a5b4fc;
+        margin-right: 16px;
+      }
+      footer {
+        margin-top: 40px;
+        color: #94a3b8;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="brand">FlyNext</div>
+      <p class="tag">Your journey. Your next step.</p>
+      <h1>Arquitectura y <span>decisiones de ingeniería</span></h1>
+      <p>
+        Cuatro diagramas interactivos que explican cómo FlyNext transforma información operacional
+        en recomendaciones claras, verificables y seguras. Cada diagrama se abre en el navegador y
+        funciona por sí solo. Todos los datos son sintéticos.
+      </p>
+      <ul>
+        <li>
+          <a class="card" href="diagrams/html/01-arquitectura.html"
+            ><b>1. Arquitectura del sistema</b
+            ><small>Navegador, API Fastify, dominio y despliegue único.</small></a
+          >
+        </li>
+        <li>
+          <a class="card" href="diagrams/html/02-secuencia.html"
+            ><b>2. Secuencia de evaluación</b
+            ><small>Qué ocurre, paso a paso, con cada consulta.</small></a
+          >
+        </li>
+        <li>
+          <a class="card" href="diagrams/html/03-decisiones.html"
+            ><b>3. Flujo de decisiones</b
+            ><small>Fuentes, frescura, conexión, políticas y recomendación.</small></a
+          >
+        </li>
+        <li>
+          <a class="card" href="diagrams/html/04-limites-ia.html"
+            ><b>4. Límites de IA y control humano</b
+            ><small>Lo implementado frente a lo propuesto.</small></a
+          >
+        </li>
+      </ul>
+      <p class="links">
+        <a href="https://github.com/fmurillodev/fly-next">Repositorio</a
+        ><a href="https://flynext-api-production.up.railway.app">Aplicación pública</a>
+      </p>
+      <footer>
+        FlyNext es un demo. Diagramas generados con Archify (Apache-2.0); sus avisos de licencia se
+        conservan en cada archivo.
+      </footer>
+    </main>
+  </body>
 </html>
