@@ -11,6 +11,7 @@ export interface AlternativeOption {
   readonly originCode?: string;
   readonly destinationCode?: string;
   readonly departure?: Instant;
+  readonly departureTimeZone?: string;
   readonly retrievedAt: Instant;
   readonly ttlSeconds: number;
   /** `null` is unknown, never zero (D06). */
@@ -42,6 +43,7 @@ export interface AlternativeEvaluation {
   readonly kind: AlternativeOption["kind"];
   readonly flightNumber?: string;
   readonly departure?: Instant;
+  readonly departureTimeZone?: string;
   readonly eligibility: Eligibility;
   readonly reasonCodes: readonly string[];
 }
@@ -94,6 +96,9 @@ function evaluateOption(option: AlternativeOption, ctx: AlternativeContext): Alt
     kind: option.kind,
     ...(option.flightNumber === undefined ? {} : { flightNumber: option.flightNumber }),
     ...(option.departure === undefined ? {} : { departure: option.departure }),
+    ...(option.departureTimeZone === undefined
+      ? {}
+      : { departureTimeZone: option.departureTimeZone }),
   };
   if (blocking.length > 0) return { ...base, eligibility: "NOT_ELIGIBLE", reasonCodes: blocking };
   if (review.length > 0)

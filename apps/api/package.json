@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fastify/swagger": "9.9.5",
+    "@fastify/swagger-ui": "5.2.6",
     "@flynext/contracts": "workspace:*",
     "fastify": "catalog:",
     "zod": "catalog:"

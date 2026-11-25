@@ -110,3 +110,23 @@ Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm
 
 - PR-01: trusted modern-TypeScript skill (provenance, license, version, content, compatibility).
 - PR-05: GoogleChrome modern-web-guidance (not installed; provenance/version/privacy/registry checks first), frontend-design, web-design-guidelines, vercel-react-best-practices, Tailwind CSS v4 skill, Playwright MCP.
+
+## PR-04 local API verification — observed 2026-11-25
+
+
+
+- Node 24.15.0 via nvm and pnpm 12.16.1. Preflight: 173 API and 2 contract tests on the approved main SHA. Final: frozen install, pnpm check (259 API and 50 contracts), independent API and web builds, and git diff --check passed.
+
+- Fastify injection exercised strict requests, prior health behavior, normalized errors, provider degradation, correlation, logging privacy, rate limiting, and Swagger. Independent pre/post probes verified the three validation corrections and confirmed departure copy.
+
+- Local TCP smoke verified the built server, all three public fixtures against Zod and the documented examples, Swagger UI and JSON, 400 and 404 problem bodies, Pino records, and Vite forwarding. Swagger was fetched in the smoke; no manual browser interaction was performed.
+
+- Official Swagger compatibility tables confirmed Fastify 5 support; pinned @fastify/swagger 9.9.5 and @fastify/swagger-ui 5.2.6. No runtime Axios client, tool upgrade, external observability system, or Railway deployment. G4 remains open.
+
+## PR-04 native review correction — observed 2026-11-25
+
+
+
+- Lineage `review-b9655c1f60225e58`: four lenses plus refuter reported R3-001, R3-002 and R4-001; bounded plan 180 of 200 diff lines; correction commit `93c7ed5` (134 diff lines, frozen paths). Focused RED 10 failed / 74 passed, GREEN 84 passed. Node 24.15.0 / pnpm 12.16.1: `pnpm check` (276 API + 50 contracts), `pnpm build:api`, `pnpm build:web` and `git diff --check` passed. Targeted validator approved and acknowledgement burned the authority.
+
+- Not corrected, tracked for G4: R1-001 and R4-002 (verify rate-limit peer grouping behind the Railway proxy; the limiter uses the direct peer IP, so no per-client isolation is claimed; `trustProxy` stays off) and R3-003 (limiter window-expiry coverage). The generic 404 is intentionally sanitized and currently has no request ID; adding one is pending a maintainer decision.

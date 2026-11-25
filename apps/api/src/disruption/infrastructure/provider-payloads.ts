@@ -8,6 +8,10 @@ const zoned = z.object({ local: z.string(), timeZone: z.string() });
 const airport = z.object({ iata: z.string(), country: z.string(), timeZone: z.string() });
 const sourceStatus = z.enum(["OPERATIONAL", "DEGRADED"]);
 const source = z.enum(["OPS_CORE", "AIRPORT_FEED", "LEGACY_MIRROR"]);
+// Compact IATA (2-character) or ICAO (3-letter) carrier designator, flight digits, and optional operational suffix.
+const flightDesignator = z
+  .string()
+  .regex(/^(?:[A-Z][A-Z0-9]|[0-9][A-Z]|[A-Z]{3})[0-9]{1,4}[A-Z]?$/);
 
 export const rawBookingSchema = z.object({
   bookingRef: z.string(),
@@ -17,7 +21,7 @@ export const rawBookingSchema = z.object({
     .array(
       z.object({
         segmentId: z.string(),
-        flightNumber: z.string(),
+        flightNumber: flightDesignator,
         origin: airport,
         destination: airport,
         departure: zoned,
@@ -53,8 +57,8 @@ export const rawEventsSchema = z.object({
         status: z.enum(["SCHEDULED", "ON_TIME", "DELAYED", "CANCELLED", "UNKNOWN"]),
         delayMinutes: z.number().int().nonnegative().optional(),
         estimatedDeparture: zoned.optional(),
-        actualDeparture: zoned.optional(),
-        actualArrival: zoned.optional(),
+        actualDeparture: zoned.nullish(),
+        actualArrival: zoned.nullish(),
       }),
       z.object({ ...eventBase, type: z.literal("GATE"), gate: z.string().min(1) }),
     ]),
@@ -74,7 +78,7 @@ export const rawOptionsSchema = z.array(
   z.object({
     optionId: z.string(),
     kind: z.enum(["FLIGHT", "REFUND"]),
-    flightNumber: z.string().optional(),
+    flightNumber: flightDesignator.optional(),
     origin: z.string().optional(),
     destination: z.string().optional(),
     departure: zoned.optional(),
