@@ -28,7 +28,24 @@ describe("loadConfig", () => {
     expect(loadConfig({ PORT: "8080" }).port).toBe(8080);
   });
 
-  it("rejects an invalid PORT", () => {
-    expect(() => loadConfig({ PORT: "abc" })).toThrow();
+  it.each([
+    ["empty", ""],
+    ["whitespace", " "],
+    ["non-numeric", "abc"],
+    ["decimal", "80.5"],
+    ["negative", "-1"],
+    ["zero (random port)", "0"],
+    ["above range", "65536"],
+    ["exponent", "1e3"],
+  ])("rejects PORT: %s", (_label, value) => {
+    expect(() => loadConfig({ PORT: value })).toThrow();
+  });
+
+  it.each([
+    ["1", 1],
+    ["8080", 8080],
+    ["65535", 65535],
+  ])("accepts PORT=%s", (value, expected) => {
+    expect(loadConfig({ PORT: value }).port).toBe(expected);
   });
 });

@@ -1,3 +1,6 @@
+engineStrict: true
+saveExact: true
+
 packages:
   - apps/*
   - packages/*

@@ -64,7 +64,14 @@ Decisions and findings:
 
 Validations (all real, Node 24.15.0): `pnpm install --frozen-lockfile` OK; `pnpm lint`, `typecheck`, `test` (contracts 2 tests, api 5 tests), `build:api`, `build:web`, `build`, `check` exit 0; `git diff --check` clean; same `pnpm check` exit 0 in a clean local clone of the commit. Build independence from a state without any `dist/`: `build:web` produced only `apps/web/dist`; `build:api` produced `packages/contracts/dist` + `apps/api/dist` and no web output. HTTP smoke: `PORT=3456 pnpm start:api` → `GET /health` = `200 {"status":"ok"}`, unknown route 404, listener bound on all interfaces (`*:3456`), SIGTERM logged "shutting down" and released the port. **GitHub Actions has not run** (no remote exists); `ci.yml` is configured only.
 
+## PR-01 review fixes (G1) — observed 2026-11-25
+
+- Native review (risk + reliability lenses) approved; four non-blocking findings; the maintainer approved fixing three.
+- `engines.node` is now `^24.15.0`; `.nvmrc` stays `24.15.0`; `engine-strict=true` kept. Railpack docs state Node is resolved from `RAILPACK_NODE_VERSION`, then `devEngines.runtime`, then `.nvmrc`/`engines.node`; a public forum report shows a deploy silently falling back to Node 18 despite `engines.node`. **Railway compatibility is therefore documented but unverified until PR-02**, which must check the Node version actually used by the build.
+- **Finding while verifying `engine-strict`:** pnpm 12 ignored `engine-strict` and `save-exact` in `.npmrc` (`pnpm config get` returned `undefined`, and `pnpm install` under Node 26.1.0 succeeded). Both settings moved to `pnpm-workspace.yaml` (`engineStrict: true`, `saveExact: true`) and `.npmrc` was removed. Verified: `pnpm install --frozen-lockfile` under Node 26.1.0 now fails with `ERR_PNPM_UNSUPPORTED_ENGINE` (wanted `^24.15.0`); under Node 24.15.0 it passes.
+- `PORT` validation is now strict decimal digits in 1–65535 (default 3000 only when unset). Test-first: 4 new cases failed before the fix (empty, whitespace, zero, `1e3`), all pass after.
+
 ## Pending evaluations
 
 - PR-01: trusted modern-TypeScript skill (provenance, license, version, content, compatibility).
-- PR-05: frontend-design, web-design-guidelines, vercel-react-best-practices, Tailwind CSS v4 skill, Playwright MCP.
+- PR-05: GoogleChrome modern-web-guidance (not installed; provenance/version/privacy/registry checks first), frontend-design, web-design-guidelines, vercel-react-best-practices, Tailwind CSS v4 skill, Playwright MCP.
