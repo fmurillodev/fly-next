@@ -71,6 +71,7 @@ export interface FlightStatusFacts {
   readonly status: FlightStatus;
   readonly delayMinutes?: number;
   readonly estimatedDeparture?: Instant;
+  readonly actualDeparture?: Instant;
   readonly actualArrival?: Instant;
 }
 

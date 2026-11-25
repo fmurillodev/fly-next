@@ -215,12 +215,48 @@ describe("scenario matrix (S23, A08)", () => {
     expect(a.segments[0]?.flightStatus).toBe("UNKNOWN");
   });
 
-  it("DEMO06 confirms the missed connection from a confirmed arrival, not from an estimate", async () => {
+  it("the original DEMO06 evidence puts the connection at risk without granting R3", async () => {
+    const scenario = structuredClone(SCENARIOS["DEMO06"]!);
+    const outbound = scenario.events.events.find((e) => e.eventId === "DEMO06-E2");
+    if (outbound?.type !== "STATUS") throw new Error("fixture DEMO06-E2 expected");
+    delete outbound.actualDeparture;
+    delete outbound.delayMinutes;
+    outbound.status = "SCHEDULED";
+    const a = await assess("DEMO06", createMockProviders({ DEMO06: scenario }));
+    expect(a.connection).toMatchObject({
+      status: "AT_RISK",
+      lossConfirmation: "NOT_CONFIRMED",
+      inboundArrival: { confirmed: true },
+      marginMinutes: -30,
+    });
+    expect(ruleStatuses(a)).toMatchObject({ R1: "NOT_APPLICABLE", R3: "INSUFFICIENT_EVIDENCE" });
+  });
+
+  it("does not grant R3 when departure is reported as actual before it occurred", async () => {
+    const scenario = structuredClone(SCENARIOS["DEMO06"]!);
+    const [inbound, outbound] = scenario.events.events;
+    if (inbound?.type !== "STATUS" || outbound?.type !== "STATUS")
+      throw new Error("fixture status expected");
+    inbound.actualArrival = { ...inbound.actualArrival!, local: "2026-09-15T05:55:00-05:00" };
+    inbound.recordedAt = "2026-09-15T10:59:00Z";
+    outbound.actualDeparture = { ...outbound.actualDeparture!, local: "2026-09-15T05:50:00-05:00" };
+    outbound.recordedAt = "2026-09-15T10:40:00Z";
+    const a = await assess("DEMO06", createMockProviders({ DEMO06: scenario }));
+    expect(a.connection).toMatchObject({ status: "AT_RISK", lossConfirmation: "NOT_CONFIRMED" });
+    expect(ruleStatuses(a)).toMatchObject({ R3: "INSUFFICIENT_EVIDENCE" });
+  });
+
+  it("DEMO06 confirms loss and grants R3 from actual arrival and departure", async () => {
     const a = await assess("DEMO06");
     expect(a.connection).toMatchObject({
       status: "MISSED",
       lossConfirmation: "CONFIRMED_MISSED",
       inboundArrival: { confirmed: true },
+    });
+    expect(a.policies).toMatchObject({
+      evaluations: expect.arrayContaining([
+        expect.objectContaining({ ruleId: "R3", status: "APPLICABLE", benefit: "REBOOK_NO_FEE" }),
+      ]),
     });
   });
 });

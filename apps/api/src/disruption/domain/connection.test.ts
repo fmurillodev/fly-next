@@ -85,28 +85,57 @@ describe("evaluateConnection (D04)", () => {
     });
   });
 
-  it("confirms MISSED when the confirmed actual arrival is at or after the outbound departure (DEMO06)", () => {
+  it.each([
+    ["R3-mixed-source-missed", 80, "19:10", "SECONDARY_SOURCE", "AT_RISK", -5],
+    ["R4-001", 75, undefined, "SECONDARY_SOURCE", "AT_RISK", -5],
+    ["mixed-source SAFE", -5, undefined, "SECONDARY_SOURCE", "UNKNOWN", 75],
+    ["primary schedule", 75, undefined, "PRIMARY_SOURCE", "AT_RISK", -5],
+    ["primary estimate", 80, "19:10", "PRIMARY_SOURCE", "AT_RISK", -5],
+  ] as const)(
+    "%s does not confirm a connection outcome",
+    (_, delay, estimate, basis, status, marginMinutes) => {
+      const at = S1.scheduledArrival + delay * 60_000;
+      const outbound = estimate
+        ? { status: "DELAYED" as const, estimatedDeparture: t(`2026-09-15T${estimate}:00-05:00`) }
+        : { status: "SCHEDULED" as const };
+      expect(
+        evaluate(
+          resolved({ status: delay > 0 ? "DELAYED" : "ON_TIME", actualArrival: at }),
+          resolved(outbound, basis),
+        ),
+      ).toMatchObject({
+        status,
+        lossConfirmation: "NOT_CONFIRMED",
+        inboundArrival: { at, confirmed: true },
+        marginMinutes,
+      });
+    },
+  );
+
+  it("confirms MISSED only when confirmed arrival is at or after confirmed actual departure", () => {
+    const departed = resolved({
+      status: "ON_TIME",
+      actualDeparture: t("2026-09-15T18:55:00-05:00"),
+    });
     const result = evaluate(
       resolved({
         status: "DELAYED",
-        delayMinutes: 100,
-        actualArrival: t("2026-09-15T19:35:00-05:00"),
+        actualArrival: t("2026-09-15T19:00:00-05:00"),
       }),
-      onSchedule,
+      departed,
     );
     expect(result).toMatchObject({
       status: "MISSED",
       lossConfirmation: "CONFIRMED_MISSED",
       inboundArrival: { confirmed: true },
-      marginMinutes: -30,
+      marginMinutes: -5,
     });
     const boundary = evaluate(
       resolved({
         status: "DELAYED",
-        delayMinutes: 70,
-        actualArrival: t("2026-09-15T19:05:00-05:00"),
+        actualArrival: t("2026-09-15T18:55:00-05:00"),
       }),
-      onSchedule,
+      departed,
     );
     expect(boundary.status).toBe("MISSED");
   });
@@ -130,7 +159,7 @@ describe("evaluateConnection (D04)", () => {
   it("confirms not missed (SAFE) when the confirmed arrival preserves the booked margin", () => {
     const result = evaluate(
       resolved({ status: "ON_TIME", actualArrival: t("2026-09-15T17:50:00-05:00") }),
-      onSchedule,
+      resolved({ status: "ON_TIME", actualDeparture: S2.scheduledDeparture }),
     );
     expect(result).toMatchObject({
       status: "SAFE",
@@ -139,10 +168,10 @@ describe("evaluateConnection (D04)", () => {
     });
   });
 
-  it("confirms MISSED when the inbound flight is cancelled by the primary source", () => {
-    expect(evaluate(resolved({ status: "CANCELLED" }), onSchedule)).toMatchObject({
-      status: "MISSED",
-      lossConfirmation: "CONFIRMED_MISSED",
-    });
+  it("does not infer a missed connection from either primary-source cancellation", () => {
+    const cancelled = resolved({ status: "CANCELLED" });
+    for (const result of [evaluate(cancelled, onSchedule), evaluate(onSchedule, cancelled)]) {
+      expect(result).toMatchObject({ status: "AT_RISK", lossConfirmation: "NOT_CONFIRMED" });
+    }
   });
 });

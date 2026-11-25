@@ -41,11 +41,9 @@ const unknown = (
 /**
  * D04 with the P5 adjustment. No Minimum Connection Time is invented, so the booked connection time
  * is not a safety threshold either: a reduced but still positive margin is `UNKNOWN`, not `AT_RISK`.
- * - `MISSED` needs a confirmed fact from a non-degraded primary source (actual arrival at or after the
- *   outbound departure, or a cancellation), never a projection.
- * - `AT_RISK` needs a projected margin of zero or less, or operational evidence of risk (an
- *   unconfirmed cancellation report).
- * - `SAFE` needs confirmed sources and a margin that preserves the booked connection time.
+ * - `MISSED` needs a primary-source actual arrival at or after a primary-source actual departure.
+ * - `AT_RISK` needs a nonpositive margin without loss confirmation, or a cancellation report.
+ * - `SAFE` needs primary sources and a margin that preserves the booked connection time.
  */
 export function evaluateConnection(
   inbound: SegmentOperationalState,
@@ -59,25 +57,29 @@ export function evaluateConnection(
   }
   const inb = inbound.status.value;
   const out = outbound.status.value;
-  const inboundConfirmed = inbound.status.basis === "PRIMARY_SOURCE";
-  const confirmed = inboundConfirmed && outbound.status.basis === "PRIMARY_SOURCE";
+  const inboundPrimary = inbound.status.basis === "PRIMARY_SOURCE";
+  const outboundPrimary = outbound.status.basis === "PRIMARY_SOURCE";
+  const actualArrival = inboundPrimary ? inb.actualArrival : undefined;
+  const actualDeparture = outboundPrimary ? out.actualDeparture : undefined;
   const base = { fromSegmentId: from.id, toSegmentId: to.id, originalConnectionMinutes };
 
   if (inb.status === "CANCELLED" || out.status === "CANCELLED") {
-    const cancellationConfirmed =
-      (inb.status === "CANCELLED" && inboundConfirmed) ||
-      (out.status === "CANCELLED" && outbound.status.basis === "PRIMARY_SOURCE");
-    return cancellationConfirmed
-      ? { ...base, status: "MISSED", lossConfirmation: "CONFIRMED_MISSED" }
-      : { ...base, status: "AT_RISK", lossConfirmation: "NOT_CONFIRMED" };
+    return {
+      ...base,
+      ...(actualArrival === undefined
+        ? {}
+        : { inboundArrival: { at: actualArrival, confirmed: true } }),
+      status: "AT_RISK",
+      lossConfirmation: "NOT_CONFIRMED",
+    };
   }
 
   const outboundDeparture =
+    actualDeparture ??
     out.estimatedDeparture ??
     (out.status === "DELAYED" && out.delayMinutes !== undefined
       ? addMinutes(to.scheduledDeparture, out.delayMinutes)
       : to.scheduledDeparture);
-  const actualArrival = inboundConfirmed ? inb.actualArrival : undefined;
   const arrivalAt =
     actualArrival ??
     addMinutes(from.scheduledArrival, inb.status === "DELAYED" ? (inb.delayMinutes ?? 0) : 0);
@@ -88,18 +90,15 @@ export function evaluateConnection(
     marginMinutes,
   };
 
-  if (actualArrival !== undefined) {
-    if (marginMinutes <= 0)
-      return { ...evidence, status: "MISSED", lossConfirmation: "CONFIRMED_MISSED" };
-    return marginMinutes >= originalConnectionMinutes
-      ? { ...evidence, status: "SAFE", lossConfirmation: "CONFIRMED_NOT_MISSED" }
-      : { ...evidence, status: "UNKNOWN", lossConfirmation: "NOT_CONFIRMED" };
-  }
+  const bothActual = actualArrival !== undefined && actualDeparture !== undefined;
   if (marginMinutes <= 0)
-    return { ...evidence, status: "AT_RISK", lossConfirmation: "NOT_CONFIRMED" };
+    return bothActual
+      ? { ...evidence, status: "MISSED", lossConfirmation: "CONFIRMED_MISSED" }
+      : { ...evidence, status: "AT_RISK", lossConfirmation: "NOT_CONFIRMED" };
+  const safe = inboundPrimary && outboundPrimary && marginMinutes >= originalConnectionMinutes;
   return {
     ...evidence,
-    status: confirmed && marginMinutes >= originalConnectionMinutes ? "SAFE" : "UNKNOWN",
-    lossConfirmation: "NOT_CONFIRMED",
+    status: safe ? "SAFE" : "UNKNOWN",
+    lossConfirmation: safe && bothActual ? "CONFIRMED_NOT_MISSED" : "NOT_CONFIRMED",
   };
 }

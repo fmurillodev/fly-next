@@ -53,6 +53,7 @@ export const rawEventsSchema = z.object({
         status: z.enum(["SCHEDULED", "ON_TIME", "DELAYED", "CANCELLED", "UNKNOWN"]),
         delayMinutes: z.number().int().nonnegative().optional(),
         estimatedDeparture: zoned.optional(),
+        actualDeparture: zoned.optional(),
         actualArrival: zoned.optional(),
       }),
       z.object({ ...eventBase, type: z.literal("GATE"), gate: z.string().min(1) }),

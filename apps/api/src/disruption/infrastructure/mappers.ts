@@ -135,6 +135,9 @@ export function mapEvents(raw: unknown): OperationalEventsSnapshot {
       ...(e.estimatedDeparture
         ? { estimatedDeparture: zonedInstant(e.estimatedDeparture, "operational events") }
         : {}),
+      ...(e.actualDeparture
+        ? { actualDeparture: zonedInstant(e.actualDeparture, "operational events") }
+        : {}),
       ...(e.actualArrival
         ? { actualArrival: zonedInstant(e.actualArrival, "operational events") }
         : {}),

@@ -42,6 +42,9 @@ const statusFacts = (event: FlightStatusEvent): FlightStatusFacts => ({
   ...(event.estimatedDeparture === undefined
     ? {}
     : { estimatedDeparture: event.estimatedDeparture }),
+  ...(event.actualDeparture !== undefined && event.actualDeparture <= event.recordedAt
+    ? { actualDeparture: event.actualDeparture }
+    : {}),
   ...(event.actualArrival === undefined ? {} : { actualArrival: event.actualArrival }),
 });
 

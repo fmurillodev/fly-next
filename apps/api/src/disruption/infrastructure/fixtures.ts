@@ -264,7 +264,9 @@ const DEMO06: ScenarioFixture = {
         actualArrival: AT("2026-09-15T05:10:00-05:00", LIMA),
       }),
       statusEvent("DEMO06-E2", "DEMO06-S2", "OPS_CORE", "2026-09-15T10:50:00Z", {
-        status: "SCHEDULED",
+        status: "DELAYED",
+        delayMinutes: 5,
+        actualDeparture: AT("2026-09-15T04:45:00-05:00", LIMA),
       }),
     ],
   },
