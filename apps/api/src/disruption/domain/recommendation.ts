@@ -89,6 +89,8 @@ export function recommend(input: DecisionInput): Recommendation {
   const rebookBenefit =
     ruleStatus(input, "R1") === "APPLICABLE" || ruleStatus(input, "R3") === "APPLICABLE";
 
+  const policiesUnverified = !input.policies.available || input.policies.validity !== "VALID";
+
   const reasons: string[] = [];
   if (connection?.status === "MISSED") reasons.push("CONNECTION_MISSED");
   else if (connection?.status === "AT_RISK") reasons.push("CONNECTION_AT_RISK");
@@ -106,7 +108,12 @@ export function recommend(input: DecisionInput): Recommendation {
   let type: RecommendationType;
   if (severity === "UNKNOWN") type = "HUMAN_REVIEW";
   else if (relevant) {
-    if (connection?.status === "AT_RISK" || connection?.status === "UNKNOWN" || approvalRequired) {
+    if (
+      connection?.status === "AT_RISK" ||
+      connection?.status === "UNKNOWN" ||
+      approvalRequired ||
+      policiesUnverified
+    ) {
       type = "HUMAN_REVIEW";
     } else if (eligible) type = "REVIEW_REBOOKING_OPTIONS";
     else if (rebookBenefit || connection?.status === "MISSED") {
