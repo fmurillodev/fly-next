@@ -20,6 +20,7 @@ process.once("SIGTERM", () => void shutdown("SIGTERM"));
 
 try {
   await app.listen({ host: config.host, port: config.port });
+  app.log.info({ node: process.version, env: process.env.NODE_ENV ?? "unset" }, "runtime ready");
 } catch (error) {
   app.log.error(error, "failed to start");
   process.exit(1);
