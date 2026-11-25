@@ -246,6 +246,33 @@ describe("scenario matrix (S23, A08)", () => {
     expect(ruleStatuses(a)).toMatchObject({ R3: "INSUFFICIENT_EVIDENCE" });
   });
 
+  it.each([
+    ["after its report", "05:55:00", "2026-09-15T10:50:00Z", false],
+    ["after assessment", "06:04:00", "2026-09-15T11:01:00Z", false],
+    ["at both cutoffs", "06:02:40", SIMULATION_REFERENCE, true],
+  ] as const)(
+    "checks actual arrival %s before granting R3",
+    async (_, local, recordedAt, valid) => {
+      const scenario = structuredClone(SCENARIOS["DEMO06"]!);
+      const [inbound] = scenario.events.events;
+      if (inbound?.type !== "STATUS" || !inbound.actualArrival)
+        throw new Error("fixture actual arrival expected");
+      inbound.actualArrival.local = `2026-09-15T${local}-05:00`;
+      inbound.recordedAt = recordedAt;
+      const a = await assess("DEMO06", createMockProviders({ DEMO06: scenario }));
+      expect(a.segments[0]).toMatchObject({
+        flightStatus: "DELAYED",
+        delay: { kind: "CONFIRMED", minutes: 100 },
+      });
+      expect(a.connection).toMatchObject({
+        status: valid ? "MISSED" : "AT_RISK",
+        lossConfirmation: valid ? "CONFIRMED_MISSED" : "NOT_CONFIRMED",
+        inboundArrival: { confirmed: valid },
+      });
+      expect(ruleStatuses(a)).toMatchObject({ R3: valid ? "APPLICABLE" : "INSUFFICIENT_EVIDENCE" });
+    },
+  );
+
   it("DEMO06 confirms loss and grants R3 from actual arrival and departure", async () => {
     const a = await assess("DEMO06");
     expect(a.connection).toMatchObject({

@@ -36,17 +36,22 @@ interface Candidate<T> {
   readonly value: T;
 }
 
-const statusFacts = (event: FlightStatusEvent): FlightStatusFacts => ({
-  status: event.status,
-  ...(event.delayMinutes === undefined ? {} : { delayMinutes: event.delayMinutes }),
-  ...(event.estimatedDeparture === undefined
-    ? {}
-    : { estimatedDeparture: event.estimatedDeparture }),
-  ...(event.actualDeparture !== undefined && event.actualDeparture <= event.recordedAt
-    ? { actualDeparture: event.actualDeparture }
-    : {}),
-  ...(event.actualArrival === undefined ? {} : { actualArrival: event.actualArrival }),
-});
+function statusFacts(event: FlightStatusEvent, now: Instant): FlightStatusFacts {
+  const latestActual = Math.min(event.recordedAt, now);
+  return {
+    status: event.status,
+    ...(event.delayMinutes === undefined ? {} : { delayMinutes: event.delayMinutes }),
+    ...(event.estimatedDeparture === undefined
+      ? {}
+      : { estimatedDeparture: event.estimatedDeparture }),
+    ...(event.actualDeparture !== undefined && event.actualDeparture <= latestActual
+      ? { actualDeparture: event.actualDeparture }
+      : {}),
+    ...(event.actualArrival !== undefined && event.actualArrival <= latestActual
+      ? { actualArrival: event.actualArrival }
+      : {}),
+  };
+}
 
 const sameFacts = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
 
@@ -140,7 +145,7 @@ export function reconcileSegment(
       eventId: e.id,
       source: e.source,
       recordedAt: e.recordedAt,
-      value: statusFacts(e),
+      value: statusFacts(e, now),
     }));
   const gateCandidates = own
     .filter((e): e is GateEvent => e.kind === "GATE")
