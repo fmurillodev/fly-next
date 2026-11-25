@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Arquitectura compacta de FlyNext",
+    "locale": "es",
+    "output": "01-arquitectura-compacta.html",
+    "quality_profile": "showcase",
+    "feedback_links": false,
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "database": {
+          "label": "Fuentes de datos"
+        },
+        "messagebus": {
+          "label": "Registros"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "persona",
+      "type": "external",
+      "label": "Pasajero",
+      "sublabel": "desktop o móvil",
+      "pos": [
+        30,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "browser",
+      "type": "frontend",
+      "label": "Navegador",
+      "sublabel": "React 19 en el cliente",
+      "pos": [
+        230,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API Fastify",
+      "sublabel": "valida y sirve la web",
+      "pos": [
+        430,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "un servicio en Railway"
+    },
+    {
+      "id": "core",
+      "type": "backend",
+      "label": "Caso de uso y dominio",
+      "sublabel": "reglas deterministas",
+      "pos": [
+        630,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "sin LLM"
+    },
+    {
+      "id": "src",
+      "type": "database",
+      "label": "Fuentes sintéticas",
+      "sublabel": "puertos y adaptadores",
+      "pos": [
+        830,
+        110
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "zod",
+      "type": "security",
+      "label": "Contratos Zod",
+      "sublabel": "compartidos web y API",
+      "pos": [
+        330,
+        250
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "log",
+      "type": "messagebus",
+      "label": "Logs Pino",
+      "sublabel": "sin datos personales",
+      "pos": [
+        530,
+        250
+      ],
+      "size": [
+        150,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Un solo proceso Node.js",
+      "wraps": [
+        "api",
+        "core",
+        "src",
+        "log"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "a",
+      "from": "persona",
+      "to": "browser",
+      "label": "usa"
+    },
+    {
+      "id": "b",
+      "from": "browser",
+      "to": "api",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c",
+      "from": "api",
+      "to": "core",
+      "label": "bookingId"
+    },
+    {
+      "id": "d",
+      "from": "core",
+      "to": "src",
+      "label": "lecturas"
+    },
+    {
+      "id": "e",
+      "from": "zod",
+      "to": "api",
+      "label": "valida",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "f",
+      "from": "api",
+      "to": "log",
+      "label": "eventos",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": []
+}

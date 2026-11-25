@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Arquitectura del sistema FlyNext",
+    "locale": "es",
+    "output": "01-arquitectura.html",
+    "quality_profile": "showcase",
+    "feedback_links": false,
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "database": {
+          "label": "Fuentes de datos"
+        },
+        "messagebus": {
+          "label": "Registros"
+        }
+      }
+    }
+  },
+  "layout": {
+    "mode": "auto"
+  },
+  "components": [
+    {
+      "id": "persona",
+      "type": "external",
+      "label": "Pasajero o evaluador",
+      "sublabel": "desktop o móvil"
+    },
+    {
+      "id": "browser",
+      "type": "frontend",
+      "label": "Navegador",
+      "sublabel": "React 19 + Vite + Tailwind",
+      "tag": "se ejecuta en el cliente"
+    },
+    {
+      "id": "contracts",
+      "type": "security",
+      "label": "Contratos Zod",
+      "sublabel": "@flynext/contracts",
+      "tag": "compartidos"
+    },
+    {
+      "id": "fastify",
+      "type": "backend",
+      "label": "API REST Fastify",
+      "sublabel": "valida, limita y sirve la web",
+      "tag": "POST /api/v1/disruptions/assessment"
+    },
+    {
+      "id": "usecase",
+      "type": "backend",
+      "label": "Caso de uso",
+      "sublabel": "AssessDisruption"
+    },
+    {
+      "id": "domain",
+      "type": "backend",
+      "label": "Motor de dominio",
+      "sublabel": "reglas deterministas",
+      "tag": "sin LLM"
+    },
+    {
+      "id": "adapters",
+      "type": "database",
+      "label": "Adaptadores sintéticos",
+      "sublabel": "viajes, eventos, políticas, alternativas"
+    },
+    {
+      "id": "pino",
+      "type": "messagebus",
+      "label": "Observabilidad",
+      "sublabel": "logs Pino sin datos personales"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Railway: un servicio, un proceso Node.js",
+      "wraps": [
+        "fastify",
+        "usecase",
+        "domain",
+        "adapters",
+        "pino"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "from": "persona",
+      "to": "browser",
+      "label": "usa"
+    },
+    {
+      "id": "c2",
+      "from": "browser",
+      "to": "fastify",
+      "label": "HTTPS: página y consulta",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c3",
+      "from": "contracts",
+      "to": "browser",
+      "label": "valida la respuesta",
+      "variant": "security"
+    },
+    {
+      "id": "c4",
+      "from": "contracts",
+      "to": "fastify",
+      "label": "valida entrada y salida",
+      "variant": "security"
+    },
+    {
+      "id": "c5",
+      "from": "fastify",
+      "to": "usecase",
+      "label": "bookingId"
+    },
+    {
+      "id": "c6",
+      "from": "usecase",
+      "to": "domain",
+      "label": "evidencia"
+    },
+    {
+      "id": "c7",
+      "from": "usecase",
+      "to": "adapters",
+      "label": "lecturas (puertos)"
+    },
+    {
+      "id": "c8",
+      "from": "fastify",
+      "to": "pino",
+      "label": "eventos",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Cliente",
+      "items": [
+        "React corre en el navegador, no en un servidor propio",
+        "Fastify entrega los archivos estáticos compilados"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Servidor",
+      "items": [
+        "Un solo servicio sin base de datos",
+        "El dominio no depende de Fastify ni de React"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Límites",
+      "items": [
+        "Datos sintéticos; solo lectura",
+        "Ninguna acción se ejecuta"
+      ]
+    }
+  ]
+}

@@ -34,3 +34,7 @@ pnpm-debug.log*
 
 # Challenge source material must never be published
 *.pdf
+
+# Local project-level skill install (Archify); regenerable, not part of the product
+.agents/
+skills-lock.json
