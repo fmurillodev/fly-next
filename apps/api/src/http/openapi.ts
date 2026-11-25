@@ -51,7 +51,7 @@ const demo01 = AssessmentResponseSchema.parse({
           code: "FLIGHT_ON_TIME",
           title: "Tu vuelo LA501 está en horario",
           message:
-            "No hay retrasos informados para el vuelo LA501. La puerta de embarque todavía no está publicada.",
+            "No hay retrasos informados para el vuelo LA501. Aún no hay información verificada sobre la puerta de embarque.",
         },
       },
     ],
