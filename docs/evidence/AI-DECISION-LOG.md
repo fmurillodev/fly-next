@@ -10,6 +10,9 @@ Records real AI-assisted decisions only. Human decisions are authoritative.
 | 4 | 2026-11-25 | Time budget | AI noted prior analysis time was not measurable and asked for it | Maintainer set 30 min consumed, 150 min remaining, and a revised per-PR budget | Task file updated |
 | 5 | 2026-11-25 | Documentation consistency review | AI performed a bounded document review (no RDD review) | Authorized by maintainer | Findings in the PR-00 closure report |
 
+| 6 | 2026-11-25 | PR-01 TypeScript version | AI selected TypeScript 6.0.3 instead of `latest` 7.0.2 after reading peer ranges | Within PR-01 authority (exact-version compatibility rule) | Recorded in TOOLING.md |
+| 7 | 2026-11-25 | PR-01 review routing | Native assess reported `reviewDue: high_risk` (CI workflow file) for the committed range; AI did not start RDD because consent is the maintainer's | Pending maintainer decision | Reported at PR-01 closure |
+
 ## Rules applied
 
 - No LLM at runtime (human-approved).
